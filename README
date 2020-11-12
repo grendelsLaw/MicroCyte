@@ -1,0 +1,29 @@
+Welcome to the Microcytometry workflow developed by Jason Needham out of the University of Alabama at Birmingham (2020)
+
+Steps to use this package:
+0) *Install dependencies* These can be done by running the "0_setup.R" script.
+
+1) *Fill out schema.csv*
+
+2) *Run 1_dirGen.R* This will automatically generate the appropriate subdirectories for you to add your images.
+
+3) *Add images to the appropriate subdirectories.* They should be TIFs, and labeled either by their target, or using the default "1_CH#.tif" convention given by the Keyence microscope.
+
+3b) *Run 2_purgo.R* This will generate TIFs/PNGs from the images and correct for spectral overlap, if necessary. Can be run in manual (corrects between two images given by in the arguments), auto (corrects between CH3 and CH4), and full (sequentially corrects between CH1 through CH4) modes.
+
+3c) *Run 3_reName.R* If the images are using the default Keyence "1_CH#.tif" convention, use rename.sh to change names to the targets specified in the schema.csv file.
+
+4) *Run 4_YggData_multi ImageJ macro* This extracts both nuclear-dependent data and nuclear-independent data from the images.
+
+5) *Run 5_imagen.R* This will combine the nuclear-dependent and nuclear-indendent data from each image into two datasets. One is a detailed list of each ROI in the Nucear-independent data, and the other is a detailed list of the Nuclear-dependent data with average data for the associated Nuclear-Indenpendent data. Nearest neighbor calculations are used to assign ROIs to specific nuclei.
+
+6) *Run 6_concato.R* This will combine the individual image data within each condition into a single nuclear-dependent datasetand a nuclear-independent dataset.
+
+7) *Run 7_unite.R* This combines the individual conditions into a single nuclear-dependent datasetand a nuclear-independent dataset stored within the 'data' directory.
+
+8) *Analyze data using SirMixaplot.R functions in Rstudio -OR- any Flow Cytometry software that will take a csv input.*
+
+
+I hope this makes your life easier and generates lots of data!
+
+-Jason
