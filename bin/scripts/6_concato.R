@@ -52,21 +52,15 @@ concato <- function(dirz = "../files",
       if (normalization == T){
         normTargets <- names(cells)[grepl("Mean_", names(cells)) | grepl("IntDen", names(cells)) ]
         for (imageNum in unique(cells$image)){
-          print(imageNum)
           for (target_name in normTargets){
-            print(target_name)
-            print("step 1")
             cells[target_name][cells$image == imageNum,] <- cells[target_name][cells$image == imageNum,]/mean(cells[target_name][cells$image == imageNum,])
-            print("step 2")
             cells[target_name][cells$image == imageNum,] <- cells[target_name][cells$image == imageNum,] + min(cells[target_name][cells$image == imageNum,])
-            print("step 3")
             cells[target_name][cells$image == imageNum,] <- cells[target_name][cells$image == imageNum,]/quantile(unlist(cells[target_name][cells$image == imageNum,]))[2]
-            print("step 4")
           }
         }
       }
       write.csv(cells, file = paste0(xL, "_all.csv"), row.names = F)
-      #write.csv(rois, file = paste0(xL, "_roi_all.csv"), row.names = F)
+      write.csv(rois, file = paste0(xL, "_roi_all.csv"), row.names = F)
       if(!exists("minNum")){
         minNum <- nrow(cells)
       } else{
