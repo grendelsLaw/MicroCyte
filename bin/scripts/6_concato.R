@@ -17,7 +17,7 @@ concato <- function(dirz = "../files",
         if(!grepl(".csv",yL) & !grepl(".pdf", yL)){
           setwd(yL)
           zList <- list.files(pattern = "_WN_all.csv")[1]
-          #rList <- list.files(pattern = "_ROI_all.csv")[1]
+          rList <- list.files(pattern = "_ROI_all.csv")[1]
           if(!exists("cells")){
             cells <- read.csv(zList)
           } else{
