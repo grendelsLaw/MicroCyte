@@ -298,24 +298,18 @@ gate <- function(df=cells,
   print(qq+geom_density_2d())
   cat(paste0("Gating out the ", gateName, " population:"))
   cat("\n")
-  x1 <<- readline(prompt = "Which value of pX should the gating begin: ")
-  x2 <<- readline(prompt = "Which value of pX should the gating end: ")
-  y1 <<- readline(prompt = "Which value of py should the gating begin: ")
-  y2 <<- readline(prompt = "Which value of py should the gating end: ")
+  x1 <- readline(prompt = "Which value of pX should the gating begin: ")
+  x2 <- readline(prompt = "Which value of pX should the gating end: ")
+  y1 <- readline(prompt = "Which value of py should the gating begin: ")
+  y2 <- readline(prompt = "Which value of py should the gating end: ")
   xSet <- c(x1, x2)
   ySet <- c(y1, y2)
   
-  workaround<<- subset(df, as.numeric(get(px)) > as.numeric(xSet[1]) & as.numeric(get(px)) < as.numeric(xSet[2]))
-  workaround <<- subset(workaround, as.numeric(get(py)) > as.numeric(ySet[1]) & as.numeric(get(py)) < as.numeric(ySet[2]))
+  workaround <- subset(df, get(px) > as.numeric(xSet[1]) & get(px) < as.numeric(xSet[2]))
+  workaround <<- subset(workaround, get(py) > as.numeric(ySet[1]) & get(py) < as.numeric(ySet[2]))
   assign(gateName, workaround, envir = .GlobalEnv)
   
-  cells$gatePop<<-cells$Number %in% workaround$Number
-  
-  if(gateName == "negPop"){
-    negPop_correct()
-  } else{
-    colnames(cells)[match("gatePop", names(cells))]<<-gateName
-  }
+  negPop_correct()
 }
 
 #This function uses a true negative population to adjust the background
@@ -429,9 +423,9 @@ normalizer <- function(){
   cells$dna_norm <<- (cells$log2_dna+1)-diploid
   
   for (i in 1:nrow(cells)){
-    if (cells$dna_norm[i] < 1.5) {
+    if (cells$dna_norm[i] < 1.6) {
       cells$ploidy[i] <<- "2N"
-    } else if (cells$dna_norm[i] > 2.5) {
+    } else if (cells$dna_norm[i] > 2.6) {
       cells$ploidy[i] <<- ">4N"
     } else{
       cells$ploidy[i] <<- "4N"
@@ -803,6 +797,6 @@ suppressPackageStartupMessages(library(MASS))
 suppressPackageStartupMessages(library(viridis))
 suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(RecordLinkage))
-#suppressPackageStartupMessages(library(ggbiplot))
+suppressPackageStartupMessages(library(ggbiplot))
 cat("Welcome, SirMixaPlot! type `sirmixaplot(filename)' to get started, or call imaGen(directory) to generate an '_all.csv' file.")
 cat("\n")
