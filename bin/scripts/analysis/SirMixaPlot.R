@@ -775,17 +775,21 @@ cb_black <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", 
 cellCycle_colors <- c("#D4D4D4", "#98C84C", "#23B8CC", "#F16B1A", "#E5001C")
 
 
-# theme_general <- theme(legend.position = "right", 
-#                        legend.text = element_text(size = 15), 
-#                        legend.title = element_text(size = 18), 
-#                        axis.line = element_line(color = "black", size = 1.5), 
-#                        axis.ticks = element_line(color = "black", size = 1.5), 
-#                        panel.grid.major = element_blank(), 
-#                        panel.grid.minor = element_blank(), 
-#                        axis.title = element_text(size = 36, family = "sans", color = "black"), 
-#                        axis.text = element_text(size = 24, family = "sans", color = "black"),
-#                        legend.key.size = unit(1.5, "cm")
-#)
+theme_general <- theme(legend.position = "right", 
+                        legend.text = element_text(size = 15), 
+                        legend.title = element_text(size = 18), 
+                        axis.line = element_line(color = "black", size = 1.5), 
+                        axis.ticks = element_line(color = "black", size = 1.5), 
+                        panel.grid.major = element_blank(), 
+                        panel.grid.minor = element_blank(), 
+                        axis.title = element_text(size = 36, family = "sans", color = "black"), 
+                        axis.text = element_text(size = 24, family = "sans", color = "black"),
+                        legend.key.size = unit(1.5, "cm"),
+                        panel.grid.major = element_blank(), 
+                        panel.grid.minor = element_blank(),
+                        panel.background = element_rect(fill = "transparent",colour = NA),
+                        plot.background = element_rect(fill = "transparent",colour = NA)
+)
 
 #-----------------------------------------------------------------------------------------------------------
 #Program opens required packages
