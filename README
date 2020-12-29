@@ -22,7 +22,8 @@ Steps to use this package:
 7) *Run 7_unite.R* This combines the individual conditions into a single nuclear-dependent datasetand a nuclear-independent dataset stored within the 'data' directory.
 
 8) *Analyze data using SirMixaplot.R functions in Rstudio -OR- any Flow Cytometry software that will take a csv input.*
-
+8a) SirMixaPlot - This is a series of automated R scripts to analyze and present data
+8b) cap_ifa - This is a series of scripts to automatically call virally-infected plaques
 
 I hope this makes your life easier and generates lots of data!
 
