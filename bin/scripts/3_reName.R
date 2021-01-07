@@ -14,7 +14,7 @@ reName <- function(){
         }
         yList <- list.files(path = paste0("../files/", a,"/", aL), pattern = ".tif")
         for (b in yList){
-          if(strsplit(b, ".tif")[[1]][1] %in% c("1_CH1", "1_CH2","1_CH3","1_CH4")){
+          if(T %in% sapply(c("_CH1.tif", "_CH2.tif", "_CH3.tif", "_CH4.tif"), grepl, strsplit(b, ".tif")[[1]][1])){
             b_sub <- strsplit(b, "_")[[1]][2]
             b_sub <- strsplit(b_sub, ".tif")[[1]][1]
             x <- unique(hit[b_sub][,1])
@@ -29,7 +29,7 @@ reName <- function(){
         if("PNGS" %in% list.files(path = paste0("../files/", a, "/", aL))){
           yList <- list.files(path = paste0("../files/", a,"/", aL, "/PNGS"), pattern = ".png")
           for (b in yList){
-            if(strsplit(b, ".png")[[1]][1] %in% c("1_CH1", "1_CH2","1_CH3","1_CH4")){
+            if(T %in% sapply(c("_CH1.tif", "_CH2.tif", "_CH3.tif", "_CH4.tif"), grepl, strsplit(b, ".tif")[[1]][1])){
               b_sub <- strsplit(b, "_")[[1]][2]
               b_sub <- strsplit(b_sub, ".png")[[1]][1]
               x <- unique(hit[b_sub][,1])
@@ -45,7 +45,7 @@ reName <- function(){
         if("originals" %in% list.files(path = paste0("../files/", a, "/", aL))){
           yList <- list.files(path = paste0("../files/", a,"/", aL, "/originals"), pattern = ".tif")
           for (b in yList){
-            if(strsplit(b, ".tif")[[1]][1] %in% c("1_CH1", "1_CH2","1_CH3","1_CH4")){
+            if(T %in% sapply(c("_CH1.tif", "_CH2.tif", "_CH3.tif", "_CH4.tif"), grepl, strsplit(b, ".tif")[[1]][1])){
               b_sub <- strsplit(b, "_")[[1]][2]
               b_sub <- strsplit(b_sub, ".tif")[[1]][1]
               x <- unique(hit[b_sub][,1])
