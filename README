@@ -24,6 +24,7 @@ Steps to use this package:
 8) *Analyze data using SirMixaplot.R functions in Rstudio -OR- any Flow Cytometry software that will take a csv input.*
 8a) SirMixaPlot - This is a series of automated R scripts to analyze and present data
 8b) cap_ifa - This is a series of scripts to automatically call virally-infected plaques
+8c) explore - This generates summary list from a dataset based on the schema file and user-selected categories
 
 I hope this makes your life easier and generates lots of data!
 
