@@ -1,5 +1,33 @@
 //YggData is the ThompsonLab ImageJ macro for single cell analysis of IFA images
 
+runPeri=true;
+enlargeFactor="2";
+nucleusSize="30-800";
+dnaMinThreshold=30;
+
+runWC=true;
+wcTarget1="dna";
+wcTarget1Threshold=dnaMinThreshold;
+wcTarget1Size=nucleusSize;
+
+wcTarget2="brdu";
+wcTarget2Threshold=15;
+wcTarget2Size="1-Infinty";
+
+wcTarget3="edu";
+wcTarget3Threshold=30;
+wcTarget3Size="1-Infinty";
+
+wcTarget4="n";
+wcTarget4Threshold=25;
+wcTarget4Size="1-Infinty";
+
+wcTarget5="tag";
+wcTarget5Threshold=15;
+wcTarget5Size="1-Infinty";
+
+wcTargetDefaultSize="1-Infinty";
+
 //	This macro first asks you to pick a nucleus picture to generate ROIs from
 //	It then uses these ROIs to determine the raw NUCLEAR data from each image within the directory, and stores these CSVs in a newly created 'Nuclear' folder
 //	Ygg will then back out and generate ROIs for each image independent of nuclear localization, and store these CSVs in a newly created 'WholeCell' folder
@@ -14,14 +42,7 @@ input=getDirectory("current");
 parent=File.getParent(input);
 input=File.getParent(parent);
 input=File.getParent(input);
-//print(input);
-//x=split(input, "/");
-//y=""
-//for(h=0; h<x.length-3; h++){
-//	y=y+"/"+x[h];
-//};
-//print(y);
-//input=y;
+
 pList=getFileList(input);
 for (i=0; i < pList.length; i++){
 	//print(pList[i]);
@@ -35,26 +56,22 @@ for (i=0; i < pList.length; i++){
 			run("8-bit");
 			setAutoThreshold("Default dark");
 			//run("Threshold...");
-			setThreshold(30, 255);
+			setThreshold(dnaMinThreshold, 255);
 			setOption("BlackBackground", false);
 			run("Convert to Mask");
 //The ROIs are rounded and split
 // If you are running a high magnification (>10x) DNA image, it is recommended that you comment this out to avoid nuclear image fragementation
 			run("Watershed");
 //The ROIs are generated
-			run("Analyze Particles...", "size=30-333 add include exclude");
+			run("Analyze Particles...", "size="+nucleusSize+" add include exclude");
 //The image is closed
-			close();
-// Then a Nuclear and WholeCell directory is made, if not already present
+			close();			
+			
+// Then you generate a list of the images in that directory:
 			if(!File.isDirectory(pathway+"/Nuclear")){
 				File.makeDirectory(pathway+"/Nuclear");
 			};
-			if(!File.isDirectory(pathway+"/WholeCell")){
-				File.makeDirectory(pathway+"/WholeCell");
-			};
 			inputn = pathway+"/Nuclear/";
-			inputc = pathway+"/WholeCell/";
-// Then you generate a list of the images in that directory:
 			for (k=0; k < iList.length; k++){
 				if (endsWith(iList[k], ".png") & !startsWith(iList[k], "overlay")){
 					open(pathway+"/"+iList[k]);
@@ -66,64 +83,112 @@ for (i=0; i < pList.length; i++){
 					close();
 				};
 			};
-//Then everything is closed
-			selectWindow("ROI Manager");
-			run("Close");
-//Now that the nuclear data is collected, Ygg will collected the nuclear indepedent data
-//Since the list of images will be the same, it simply iterates through each image and collects the total ROI pixel data
-			for (k=0; k < iList.length; k++){
-				if (endsWith(iList[k], ".png") & !startsWith(iList[k], "overlay")){
-					open(pathway+"/"+iList[k]);
-					run("8-bit");
-// Change this for deviations from default
-					setAutoThreshold("Default dark");
-//run("Threshold...");
-					if (startsWith(iList[k], "dna")){
-						setThreshold(30, 255);
-						setOption("BlackBackground", false);
-						run("Convert to Mask");
-						run("Watershed");
-						run("Analyze Particles...", "size=30-333 include add exclude");
-					} else if (startsWith(iList[k], "mcm4")){
-						setThreshold(16, 255);
-						setOption("BlackBackground", false);
-						run("Convert to Mask");
-						run("Watershed");
-						run("Analyze Particles...", "size=1-Infinity include add");
-					} else if (startsWith(iList[k], "edu")){
-						setThreshold(15, 255);
-						setOption("BlackBackground", false);
-						run("Convert to Mask");
-						run("Watershed");
-						run("Analyze Particles...", "size=20-333 include add");
-					} else if (startsWith(iList[k], "cyclinD")){
-						setThreshold(20, 255);
-						setOption("BlackBackground", false);
-						run("Convert to Mask");
-						run("Watershed");
-						run("Analyze Particles...", "size=1-Infinity include add");
-					}else {
-						setAutoThreshold("Default dark");
-						setOption("BlackBackground", false);
-						run("Convert to Mask");
-						run("Watershed");
-						run("Analyze Particles...", "size=1-Infinity include add");
-					};
-					close();
-					open(pathway+"/"+iList[k]);
-					roiManager("measure");
-					saveAs("Results", inputc+replace(iList[k], ".png", ".csv"));
-					run("Clear Results");
-					run("Close");
-					roiManager("reset")
-					if (nImages>0) {
+			if(runPeri){
+// Now the ROIs re-drawn and are increased by an enlargment factor
+				if(!File.isDirectory(pathway+"/Perinuclear")){
+					File.makeDirectory(pathway+"/Perinuclear");
+				};
+				inputp = pathway+"/Perinuclear/";
+				open(roi_image);
+				run("8-bit");
+				setAutoThreshold("Default dark");
+				setThreshold(dnaMinThreshold, 255);
+				setOption("BlackBackground", false);
+				run("Convert to Mask");
+//The ROIs are rounded and split
+				run("Watershed");
+				counts=roiManager("count");
+	
+				for(l=0; l<counts; l++) {
+    				roiManager("Select", l);
+   				 	run("Enlarge...", "enlarge="+enlargeFactor);
+    				roiManager("Update");
+				};
+				roiManager("deselect");
+				close();
+			// And the images are re-analyzed with slightly larger ROIs
+				for (k=0; k < iList.length; k++){
+					if (endsWith(iList[k], ".png") & !startsWith(iList[k], "overlay")){
+						open(pathway+"/"+iList[k]);
+						roiManager("measure");
+						saveAs("Results", inputp+replace(iList[k], ".png", ".csv"));
+						run("Clear Results");
+						selectWindow("Results");
+						run("Close");
 						close();
 					};
 				};
+			//Then everything is closed
+				selectWindow("ROI Manager");
+				run("Close");
 			};
+//Now that the nuclear data is collected, Ygg will collected the nuclear indepedent data
+//Since the list of images will be the same, it simply iterates through each image and collects the total ROI pixel data
+			if(runWC){
+				if(!File.isDirectory(pathway+"/WholeCell")){
+					File.makeDirectory(pathway+"/WholeCell");
+				};
+				inputc = pathway+"/WholeCell/";
+				for (k=0; k < iList.length; k++){
+					if (endsWith(iList[k], ".png") & !startsWith(iList[k], "overlay")){
+						open(pathway+"/"+iList[k]);
+						run("8-bit");
+// Change this for deviations from default
+						setAutoThreshold("Default dark");
+//run("Threshold...");
+						if (startsWith(iList[k], wcTarget1)){
+							setThreshold(dnaMinThreshold, 255);
+							setOption("BlackBackground", false);
+							run("Convert to Mask");
+							run("Watershed");
+							run("Analyze Particles...", "size="+nucleusSize+" include add exclude");
+						} else if (startsWith(iList[k], wcTarget2)){
+							setThreshold(wcTarget2Threshold, 255);
+							setOption("BlackBackground", false);
+							run("Convert to Mask");
+							run("Watershed");
+							run("Analyze Particles...", "size="+wcTarget2Size+" add");
+						} else if (startsWith(iList[k], wcTarget3)){
+							setThreshold(wcTarget3Threshold, 255);
+							setOption("BlackBackground", false);
+							run("Convert to Mask");
+							run("Watershed");
+							run("Analyze Particles...", "size="+wcTarget3Size+" add");
+						} else if (startsWith(iList[k], wcTarget4)){
+							setThreshold(25, 255);
+							setOption("BlackBackground", false);
+							run("Convert to Mask");
+							run("Watershed");
+							run("Analyze Particles...", "size="+wcTarget4Size+" add");
+						} else if (startsWith(iList[k], wcTarget5)){
+							setThreshold(wcTarget5Threshold, 255);
+							setOption("BlackBackground", false);
+							run("Convert to Mask");
+							run("Watershed");
+							run("Analyze Particles...", "size="+wcTarget5Size+" add");
+						}else {
+							setAutoThreshold("Default dark");
+							setOption("BlackBackground", false);
+							run("Convert to Mask");
+							run("Watershed");
+							run("Analyze Particles...", "size="+wcTargetDefaultSize+" add");
+						};
+						close();
+						open(pathway+"/"+iList[k]);
+						roiManager("measure");
+						saveAs("Results", inputc+replace(iList[k], ".png", ".csv"));
+						run("Clear Results");
+						run("Close");
+						roiManager("reset")
+						if (nImages>0) {
+							close();
+						};
+					};
+				};
 //Everything is closed
-		selectWindow("ROI Manager");
-		run("Close");
+			selectWindow("ROI Manager");
+			run("Close");
+			};
 		};
 	};
 }
