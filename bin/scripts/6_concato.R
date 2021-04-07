@@ -6,18 +6,27 @@ concato <- function(dirz = "../files",
   setwd(dirz)
   xList <- list.files()
   for (xL in xList){
+    print(paste0("Concatenating condition file ", xL))
     if (!grepl("ijm", xL)){
       setwd(xL)
       if (exists("cells")){
         rm(cells)
+      }
+      if (exists("rois")){
         rm(rois)
       }
+      if (exists("peris")){
+        rm(peris)
+      }
+      roiGo <- FALSE
+      periGo <- FALSE
       yList <- list.files()
       for(yL in yList){
         if(!grepl(".csv",yL) & !grepl(".pdf", yL)){
           setwd(yL)
-          zList <- list.files(pattern = "_WN_all.csv")[1]
-          rList <- list.files(pattern = "_ROI_all.csv")[1]
+          zList <- paste0(yL, "_WN_all.csv")
+          rList <- paste0(yL, "_ROI_all.csv" )
+          pList <- paste0(yL, "_PERI_all.csv" )
           if(!exists("cells")){
             cells <- read.csv(zList)
           } else{
@@ -32,20 +41,43 @@ concato <- function(dirz = "../files",
             }
             cells <- rbind(cells, interim)
           }
-           if(!exists("rois")){
-             rois <- read.csv(rList)
-           } else{
-             rinterim <- read.csv(rList)
-             if(ncol(interim) != ncol(cells)){
-               for(i in names(rois)[!names(rois) %in% names(rinterim)]){
-                 rinterim[i] <- 0
-               }
-               for(i in names(rinterim)[!names(rinterim) %in% names(rois)]){
-                 rois[i] <- 0
-               }
-             }
-             rois <- rbind(rois, rinterim)
-           }
+          
+          if(rList %in% list.files()){
+            roiGo <- TRUE
+            if(!exists("rois")){
+              rois <- read.csv(rList)
+            } else{
+              rinterim <- read.csv(rList)
+              if(ncol(rinterim) != ncol(rois)){
+                for(i in names(rois)[!names(rois) %in% names(rinterim)]){
+                  rinterim[i] <- 0
+                }
+                for(i in names(rinterim)[!names(rinterim) %in% names(rois)]){
+                  rois[i] <- 0
+                }
+              }
+              rois <- rbind(rois, rinterim)
+            }
+          }
+          
+          if(pList %in% list.files()){
+            periGo <- TRUE
+            if(!exists("peris")){
+              peris <- read.csv(pList)
+            } else{
+              pinterim <- read.csv(pList)
+              if(ncol(pinterim) != ncol(peris)){
+                for(i in names(peris)[!names(peris) %in% names(pinterim)]){
+                  pinterim[i] <- 0
+                }
+                for(i in names(pinterim)[!names(pinterim) %in% names(peris)]){
+                  peris[i] <- 0
+                }
+              }
+              peris <- rbind(peris, pinterim)
+            }
+          }
+
           setwd("../")
         }
       }
@@ -55,12 +87,18 @@ concato <- function(dirz = "../files",
           for (target_name in normTargets){
             cells[target_name][cells$image == imageNum,] <- cells[target_name][cells$image == imageNum,]/mean(cells[target_name][cells$image == imageNum,])
             cells[target_name][cells$image == imageNum,] <- cells[target_name][cells$image == imageNum,] + min(cells[target_name][cells$image == imageNum,])
-            cells[target_name][cells$image == imageNum,] <- cells[target_name][cells$image == imageNum,]/quantile(unlist(cells[target_name][cells$image == imageNum,]))[2]
+            quantos <- quantile(unlist(cells[target_name][cells$image == imageNum & !is.na(cells[target_name][cells$image == imageNum,]),]))[2]
+            cells[target_name][cells$image == imageNum,] <- cells[target_name][cells$image == imageNum,]/quantos
           }
         }
       }
       write.csv(cells, file = paste0(xL, "_all.csv"), row.names = F)
-      write.csv(rois, file = paste0(xL, "_roi_all.csv"), row.names = F)
+      if(roiGo == T){
+        write.csv(rois, file = paste0(xL, "_roi_all.csv"), row.names = F)
+      }
+      if(periGo == T){
+        write.csv(peris, file = paste0(xL, "_peri_all.csv"), row.names = F)
+      }
       if(!exists("minNum")){
         minNum <- nrow(cells)
       } else{
