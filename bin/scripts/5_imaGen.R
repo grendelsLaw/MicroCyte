@@ -408,6 +408,9 @@ imaGen <- function(directory="./",
   write.csv(cells, file = paste0("../",filnam, "_WN_all.csv"), row.names = F)
 }
 
+periGo <- FALSE
+wcGo <- FALSE
+
 xList <- list.files()
 for (xL in xList){
   if (!grepl("ijm", xL)){
@@ -415,20 +418,20 @@ for (xL in xList){
     print(paste0("Running ImaGen on the ", xL," folder:"))
     yList <- list.files()
     for(yL in yList){
-      periGo <- FALSE
-      wcGo <- FALSE
-      print(paste0("Combining data from image ", yL))
-      setwd(paste0(yL, "/PNGS/"))
-      checkList <- list.files()
-      if("Perinuclear" %in% checkList){
-        periGo <- TRUE
+      if(!grepl("_all.csv", yL)){
+        print(paste0("Combining data from image ", yL))
+        setwd(paste0(yL, "/PNGS/"))
+        checkList <- list.files()
+        if("Perinuclear" %in% checkList){
+          periGo <- TRUE
+        }
+        if("WholeCell" %in% checkList){
+          wcGo <- TRUE
+        }
+        imaGen(peri = periGo,
+               wc = wcGo)
+        setwd("../../")
       }
-      if("WholeCell" %in% checkList){
-        wcGo <- TRUE
-      }
-      imaGen(peri = periGo,
-             wc = wcGo)
-      setwd("../../")
     }
     setwd("../")
   }
