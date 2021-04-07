@@ -7,14 +7,17 @@ reName <- function(){
     if (!grepl(".ijm", x = a)){
       aList <- list.files(path = paste0("../files/", a))
       for (aL in aList){
+        #print(aL)
         if(a %in% unique(schema$notebook_id)){
           hit <- subset(schema, notebook_id == a)[1,]
         } else if (a %in% unique(schema$name_id)){
           hit <- subset(schema, name_id == a)[1,]
         }
+        #print(hit)
         yList <- list.files(path = paste0("../files/", a,"/", aL), pattern = ".tif")
         for (b in yList){
-          if(T %in% sapply(c("_CH1.tif", "_CH2.tif", "_CH3.tif", "_CH4.tif"), grepl, strsplit(b, ".tif")[[1]][1])){
+          #print(b)
+          if(T %in% sapply(c("_CH1", "_CH2", "_CH3", "_CH4"), grepl, strsplit(b, ".tif")[[1]][1])){
             b_sub <- strsplit(b, "_")[[1]][2]
             b_sub <- strsplit(b_sub, ".tif")[[1]][1]
             x <- unique(hit[b_sub][,1])
@@ -29,7 +32,7 @@ reName <- function(){
         if("PNGS" %in% list.files(path = paste0("../files/", a, "/", aL))){
           yList <- list.files(path = paste0("../files/", a,"/", aL, "/PNGS"), pattern = ".png")
           for (b in yList){
-            if(T %in% sapply(c("_CH1.tif", "_CH2.tif", "_CH3.tif", "_CH4.tif"), grepl, strsplit(b, ".tif")[[1]][1])){
+            if(T %in% sapply(c("_CH1", "_CH2", "_CH3", "_CH4"), grepl, strsplit(b, "png")[[1]][1])){
               b_sub <- strsplit(b, "_")[[1]][2]
               b_sub <- strsplit(b_sub, ".png")[[1]][1]
               x <- unique(hit[b_sub][,1])
@@ -42,24 +45,40 @@ reName <- function(){
             }
           }
         }
-        if("originals" %in% list.files(path = paste0("../files/", a, "/", aL))){
-          yList <- list.files(path = paste0("../files/", a,"/", aL, "/originals"), pattern = ".tif")
-          for (b in yList){
-            if(T %in% sapply(c("_CH1.tif", "_CH2.tif", "_CH3.tif", "_CH4.tif"), grepl, strsplit(b, ".tif")[[1]][1])){
-              b_sub <- strsplit(b, "_")[[1]][2]
-              b_sub <- strsplit(b_sub, ".tif")[[1]][1]
-              x <- unique(hit[b_sub][,1])
-              x <- paste0(x, ".tif")
-              if (a != x){
-                file.rename(paste0("../files/", a,"/", aL, "/originals/", b), paste0("../files/", a, "/", aL, "/originals/", x))
-              }
-            } else if(grepl("Overlay.tif", b)) {
-              file.rename(paste0("../files/", a,"/", aL, "/originals/", b), paste0("../files/", a, "/", aL, "/originals/overlay.tif"))
-            }
-          }
-        }
       }
     }
+  }
+}
+
+# If you notice that the naming scheme isn't quite right, use this function to reset the original file architecture
+# Then fix the schema file, and re-run reName
+reset_names <- function(){
+  xList <- list.files(path = "../files/")
+  for (a in xList){
+    if (!grepl(".ijm", x = a)){
+      setwd(a)
+      aList <- list.files()
+      for (aL in aList){
+        setwd(aL)
+        tifList <- list.files(pattern = "tif")
+        for (tif in tifList){
+          file.remove(tif)
+        }
+        dirList <- list.files()
+        for (dir in dirList){
+          if (dir != "originals"){
+            unlink(dir, recursive = T)
+          }
+        }
+        oriFiles <- list.files(path = "originals/")
+        for (ori in oriFiles){
+          file.copy(from = paste0("originals/", ori), to = paste0("./", ori))
+        }
+        unlink("originals", recursive = T)
+        setwd("../")
+      }
+    }
+    setwd("../")
   }
 }
 
