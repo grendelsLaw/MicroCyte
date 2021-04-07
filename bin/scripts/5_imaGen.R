@@ -53,7 +53,11 @@ imaGen <- function(directory="./",
   setwd(directoryN)
   filez <- list.files(pattern = ".csv")
   # The first file is opened to serve as a template
-  cells <- read.table(filez[1], sep = ",", header = TRUE)
+  if(!grepl("_all.csv", filez[1])){
+    cells <- read.table(filez[1], sep = ",", header = TRUE)
+  } else(
+    cells <- read.table(filez[2], sep = ",", header = TRUE)
+  )
   
   # If the csv name is not simply the target name (colorz == F), then you will be asked to name a target for each image
   # REMEMBER: One of the targets must be 'dna'
