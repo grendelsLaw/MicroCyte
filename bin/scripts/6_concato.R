@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-concato <- function(dirz = "../files",
+concato <- function(dirz = "files",
                     count = T,
                     normalization = T){
   setwd(dirz)
@@ -111,7 +111,7 @@ concato <- function(dirz = "../files",
   }
   if(count == T){
     cat(paste0("The minimum cell count recorded is: ",minNum))
+    cat("\n")
   }
+  setwd("../")
 }
-
-concato()

@@ -57,8 +57,8 @@ alakazam <- function(df = "QC/sampledPixels.csv",
                      color="green", 
                      sampleNumber=10000, 
                      corrCut = 1, 
-                     overlapper = "CH3",
-                     overlappee = "CH4", 
+                     overlapper = "CH2",
+                     overlappee = "CH1", 
                      amplification = 2, 
                      breck = 10, 
                      pool = 4){
@@ -71,11 +71,11 @@ alakazam <- function(df = "QC/sampledPixels.csv",
   
   ticky <- match(paste0("X",overlapper), names(dato))
   ricky <- match(paste0("X",overlappee) , names(dato))
-  print(ticky)
-  print(ricky)
+  #print(ticky)
+  #print(ricky)
   
   dato <- split(dato, cut(dato[,ticky], breaks = breck))
-  for (i in dato[1:5]){
+  for (i in dato[1:4]){
     if (exists("distro")){
       distro <- rbind(distro,
                       head(i[order(i[,ricky]),], n = pool))
@@ -159,9 +159,17 @@ alakazam <- function(df = "QC/sampledPixels.csv",
   newDat <- rbind(r, g, b)
   newPlot <- suppressWarnings(as.cimg(newDat))
   newPlot <- cimg2magick(newPlot, rotate = T)
+  #save.image(newPlot, paste0("PNGS/", overlappee, "_adj.png"))
   image_write(newPlot, path = paste0("PNGS/", overlappee, ".png"), format = "png")
   image_write(newPlot, path = paste0(overlappee, ".tif"), format = "tif")
 }
+
+# # test if there is at least one argument and uses the first one: if not, it defaults to the "name" argument
+# if (length(args)==0) {
+#   runType <- "none"
+# } else if (length(args)>0) {
+#   runType <- args[1]
+# }
 
 runType <- readline(prompt = "What should the runtype be (auto/manual/full/none): ")
 setwd("files/")
@@ -172,21 +180,25 @@ for (ab in dirz){
    filz <- list.files()
    for(bc in filz){
      setwd(bc)
-     abra()
-     if(runType == "auto"){
-       kadabra()
-       alakazam()
-     } else if (runType == "manual"){
-       kadabra()
-       alakazam(overlapper = args[2], overlappee = args[3])
-     } else if (runType == "full"){
-       kadabra()
-       alakazam(overlapper = "CH1", overlappee = "CH2", color = "red")
-       alakazam(overlapper = "CH2", overlappee = "CH3", color = "blue")
-       alakazam(overlapper = "CH3", overlappee = "CH4", color = "green")
+     if(!"originals" %in% list.files()){
+       print(paste0("Running purgo on file ", ab, " picture ", bc, "."))
+       abra()
+       if(runType == "auto"){
+         kadabra()
+         alakazam()
+       } else if (runType == "manual"){
+         kadabra()
+         alakazam(overlapper = args[2], overlappee = args[3])
+       } else if (runType == "full"){
+         kadabra()
+         alakazam(overlapper = "CH1", overlappee = "CH2", color = "red")
+         alakazam(overlapper = "CH2", overlappee = "CH3", color = "blue")
+         alakazam(overlapper = "CH3", overlappee = "CH4", color = "green")
+       }
      }
      setwd("../")
    }
    setwd("../")
  }
 }
+setwd("../")

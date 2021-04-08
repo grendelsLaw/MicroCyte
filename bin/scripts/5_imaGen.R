@@ -412,6 +412,8 @@ imaGen <- function(directory="./",
   write.csv(cells, file = paste0("../",filnam, "_WN_all.csv"), row.names = F)
 }
 
+setwd("files")
+
 periGo <- FALSE
 wcGo <- FALSE
 
@@ -440,3 +442,5 @@ for (xL in xList){
     setwd("../")
   }
 }
+
+setwd("../")

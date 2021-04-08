@@ -6,19 +6,19 @@
 # here's the actual function to automatically generate the directories based on the schema file
 dirGen <- function(idType="name"){
   #First, lets generate the appropriate folders
-  dirList <- list.files("../../")
+  dirList <- list.files()
   if(!"files" %in% dirList){
-    dir.create("../../files")
+    dir.create("files")
   }
   if(!"figures" %in% dirList){
-    dir.create("../../figures")
+    dir.create("figures")
   }
   if(!"data" %in% dirList){
-    dir.create("../../data")
+    dir.create("data")
   }
   
   #reads the schema file
-  schema <- read.csv("../../schema.csv")
+  schema <- read.csv("schema.csv")
   # if the passed argument is "number", the notebookID is used, otherwise a descriptive name is generated from the optional data tags
   if (idType == "number" | ncol(schema)<6){
     xList <- unique(schema$notebook_id)
@@ -30,12 +30,12 @@ dirGen <- function(idType="name"){
         xList <- schema[,a]
       }
       schema$name_id <- xList
-      write.csv(schema, "../../schema.csv", row.names = F)
+      write.csv(schema, "schema.csv", row.names = F)
     }
   }
   # Directories are touched, unless they already exist
   for(a in xList){
-    dirName <- paste0("../../files/", a)
+    dirName <- paste0("files/", a)
     if(!dir.exists(dirName))
     dir.create(dirName)
   }

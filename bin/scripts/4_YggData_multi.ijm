@@ -1,24 +1,24 @@
 //YggData is the ThompsonLab ImageJ macro for single cell analysis of IFA images
 
 runPeri=true;
-enlargeFactor="2";
-nucleusSize="30-800";
-dnaMinThreshold=30;
+enlargeFactor="4";
+nucleusSize="30-300";
+dnaMinThreshold=40;
 
-runWC=true;
+runWC=false;
 wcTarget1="dna";
 wcTarget1Threshold=dnaMinThreshold;
 wcTarget1Size=nucleusSize;
 
-wcTarget2="brdu";
-wcTarget2Threshold=15;
+wcTarget2="n";
+wcTarget2Threshold=22;
 wcTarget2Size="1-Infinty";
 
-wcTarget3="edu";
-wcTarget3Threshold=30;
+wcTarget3="NA";
+wcTarget3Threshold=22;
 wcTarget3Size="1-Infinty";
 
-wcTarget4="n";
+wcTarget4="ccne";
 wcTarget4Threshold=25;
 wcTarget4Size="1-Infinty";
 
@@ -45,8 +45,8 @@ input=File.getParent(input);
 
 pList=getFileList(input);
 for (i=0; i < pList.length; i++){
-	//print(pList[i]);
 	if(!endsWith(pList[i], ".ijm")){
+		//print(pList[i]);
 		dList=getFileList(input+"/"+pList[i]);
 		for (j=0; j < dList.length; j++){
 			pathway = input+"/"+pList[i]+"/"+dList[j]+"/PNGS";

@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 
-unite <- function(dirz = "./", 
+unite <- function(dirz = "files", 
                   full = T,
                   pattern = F,
                   filename = "Experiment",
@@ -9,21 +9,22 @@ unite <- function(dirz = "./",
     rm(cells)
   }
   setwd(dirz)
-  yList <- list.files()
+  if (pattern != F){
+    yList <- list.files(pattern = pattern)
+    filename <- pattern
+    print(paste0("Uniting sample datasets containing the phrase: ", pattern))
+  } else {
+    yList <- list.files()
+    print(paste0("Uniting all sample datasets found in '", dirz,"'."))
+  }
   for(yL in yList){
     if(!grepl(".csv",yL) & !grepl(".pdf", yL)){
       setwd(yL)
-      
-      
-      if(pattern != F){
-        zList <- list.files(pattern = pattern)[1]
-      } else if(paste0(yL,"_all_cells.csv") %in% list.files()){
+      if(paste0(yL,"_all_cells.csv") %in% list.files()){
         zList <- list.files(pattern = paste0(yL,"_all_cells.csv"))[1]
       } else {
         zList <- list.files(pattern = paste0(yL,"_all.csv"))[1]
       }
-      
-      
       if(!exists("cells")){
         cells <- read.csv(zList)
         if(full == F){
@@ -52,7 +53,5 @@ unite <- function(dirz = "./",
   } else{
     write.csv(cells, file = paste0("../data/",filename, "_all.csv"), row.names = F)
   }
+  setwd("../")
 }
-
-
-unite()

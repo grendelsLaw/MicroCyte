@@ -81,6 +81,3 @@ reset_names <- function(){
     setwd("../")
   }
 }
-
-# test if there is at least one argument and uses the first one: if not, it defaults to the "name" argument
-reName()
