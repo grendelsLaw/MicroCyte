@@ -37,9 +37,7 @@ joinR <- function(y, x = "dna.csv"){
       print("PING! More than one nucleus at minimum distance. Something is wrong (probably)")
     }
   }
-
   write.csv(fraction, file = y, row.names = FALSE)
-  print("File saved")
 }
 
 imaGen <- function(directory="./", 
@@ -129,7 +127,6 @@ imaGen <- function(directory="./",
     }
     # The tagger file is opened
     cells <- read.csv(tagger)
-    print(paste0("tagger opened - ", tagger))
     # Default area is quite small, so its boosted to make the numbers more "real"
     cells$Area <- cells$Area*100
     # The dna values are labeled as such
@@ -214,7 +211,6 @@ imaGen <- function(directory="./",
     interim$roi <- colo
 
     if(length(filez) > 1){
-      print("List greater than 1")
       for (i in filez[2:length(filez)]){
         if(!grepl("_all.csv", i)){
           x <- read.csv(i)
@@ -350,8 +346,6 @@ imaGen <- function(directory="./",
             interim[j] <- "NA"
           }
         }
-        #print(names(x))
-        #print(names(interim))
         x$peri <- colo
         interim <- rbind(interim, x)
       }
@@ -389,17 +383,10 @@ imaGen <- function(directory="./",
     thinkTank <- names(cells)[grepl("PERI_Area", names(cells))]
     for (z in thinkTank){
       zim <- strsplit(z, "Area")[[1]][2]
-      #print(paste0("Working on color ", zim))
-      
-      #print("Subtracting areas")
       tic <- names(cells)[grepl("Area_NUC", names(cells))][1]
       cells[paste0("PERI_SubArea", zim)] <- cells[paste0("PERI_Area", zim)]-cells[tic]
-      
-      #print("Subtracting densities")
       tic <- paste0("IntDen_NUC", zim)
       cells[paste0("PERI_SubIntDen", zim)] <- cells[paste0("PERI_IntDen", zim)]-cells[tic]
-      
-      #print("recalculating means")
       cells[paste0("PERI_SubMean", zim)] <- (100*cells[paste0("PERI_SubIntDen", zim)])/cells[paste0("PERI_SubArea", zim)]
     }
   }
