@@ -37,7 +37,9 @@ joinR <- function(y, x = "dna.csv"){
       print("PING! More than one nucleus at minimum distance. Something is wrong (probably)")
     }
   }
+
   write.csv(fraction, file = y, row.names = FALSE)
+  print("File saved")
 }
 
 imaGen <- function(directory="./", 
@@ -127,6 +129,7 @@ imaGen <- function(directory="./",
     }
     # The tagger file is opened
     cells <- read.csv(tagger)
+    print(paste0("tagger opened - ", tagger))
     # Default area is quite small, so its boosted to make the numbers more "real"
     cells$Area <- cells$Area*100
     # The dna values are labeled as such
@@ -153,7 +156,7 @@ imaGen <- function(directory="./",
       # The ROI files is opened
       if (!grepl("_all.csv", i)){
         fraction <- read.csv(i)
-    
+
 #      write.csv(fraction, file = i, row.names = F)
     #Each nucleus number is analyzed for ROI's designated to it
        for (j in 1:nrow(interim)){
@@ -207,26 +210,31 @@ imaGen <- function(directory="./",
     }
     # Now begins generating a final ROI file for funnies
     interim <- read.csv(filez[1])
-    colo <- substr(filez[1], 1, nchar(i)-2)
+    colo <- substr(filez[1], 1, nchar(i)-4)
     interim$roi <- colo
-    for (i in filez[2:length(filez)]){
-      if(!grepl("_all.csv", i)){
-        x <- read.csv(i)
-        colo <- substr(i, 1, nchar(i)-4)
-        for (j in names(interim)){
-          if (!j %in% names(x)){
-            x[j] <- "NA"
+
+    if(length(filez) > 1){
+      print("List greater than 1")
+      for (i in filez[2:length(filez)]){
+        if(!grepl("_all.csv", i)){
+          x <- read.csv(i)
+          colo <- substr(i, 1, nchar(i)-4)
+          for (j in names(interim)){
+            if (!j %in% names(x)){
+              x[j] <- "NA"
+            }
           }
-        }
-        for (j in names(x)){
-          if (!j %in% names(interim)){
-            interim[j] <- "NA"
+          for (j in names(x)){
+            if (!j %in% names(interim)){
+              interim[j] <- "NA"
+            }
           }
+          x$roi <- colo
+          interim <- rbind(interim, x)
         }
-        x$roi <- colo
-        interim <- rbind(interim, x)
       }
     }
+    
     #Now things get saved
     write.csv(interim, file = paste0("../../",filnam, "_ROI_all.csv"), row.names = F)
     write.csv(cells, file = paste0(filnam, "_WC_all.csv"), row.names = F)
