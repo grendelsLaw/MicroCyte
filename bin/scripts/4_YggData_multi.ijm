@@ -1,17 +1,17 @@
 //YggData is the ThompsonLab ImageJ macro for single cell analysis of IFA images
 
-runPeri=true;
-enlargeFactor="4";
-nucleusSize="30-300";
-dnaMinThreshold=40;
+runPeri=false;
+enlargeFactor="3";
+nucleusSize="30-200";
+dnaMinThreshold=48;
 
-runWC=false;
+runWC=true;
 wcTarget1="dna";
 wcTarget1Threshold=dnaMinThreshold;
 wcTarget1Size=nucleusSize;
 
-wcTarget2="n";
-wcTarget2Threshold=22;
+wcTarget2="ns3";
+wcTarget2Threshold=15;
 wcTarget2Size="1-Infinty";
 
 wcTarget3="NA";
@@ -83,6 +83,8 @@ for (i=0; i < pList.length; i++){
 					close();
 				};
 			};
+			selectWindow("ROI Manager");
+			run("Close");
 			if(runPeri){
 // Now the ROIs re-drawn and are increased by an enlargment factor
 				if(!File.isDirectory(pathway+"/Perinuclear")){

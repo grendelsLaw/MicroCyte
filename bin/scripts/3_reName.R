@@ -1,11 +1,11 @@
 #!/usr/bin/Rscript
 
 reName <- function(){
-  schema <- read.csv("../schema.csv")
-  xList <- list.files(path = "../files/")
+  schema <- read.csv("schema.csv")
+  xList <- list.files(path = "files/")
   for (a in xList){
     if (!grepl(".ijm", x = a)){
-      aList <- list.files(path = paste0("../files/", a))
+      aList <- list.files(path = paste0("files/", a))
       for (aL in aList){
         #print(aL)
         if(a %in% unique(schema$notebook_id)){
@@ -14,7 +14,7 @@ reName <- function(){
           hit <- subset(schema, name_id == a)[1,]
         }
         #print(hit)
-        yList <- list.files(path = paste0("../files/", a,"/", aL), pattern = ".tif")
+        yList <- list.files(path = paste0("files/", a,"/", aL), pattern = ".tif")
         for (b in yList){
           #print(b)
           if(T %in% sapply(c("_CH1", "_CH2", "_CH3", "_CH4"), grepl, strsplit(b, ".tif")[[1]][1])){
@@ -23,14 +23,14 @@ reName <- function(){
             x <- unique(hit[b_sub][,1])
             x <- paste0(x, ".tif")
             if (a != x){
-              file.rename(paste0("../files/", a,"/", aL, "/", b), paste0("../files/", a, "/", aL, "/", x))
+              file.rename(paste0("files/", a,"/", aL, "/", b), paste0("files/", a, "/", aL, "/", x))
             }
           } else if(grepl("Overlay.tif", b)) {
-            file.rename(paste0("../files/", a,"/", aL, "/", b), paste0("../files/", a, "/", aL, "/" ,"overlay.tif"))
+            file.rename(paste0("files/", a,"/", aL, "/", b), paste0("files/", a, "/", aL, "/" ,"overlay.tif"))
           }
         }
-        if("PNGS" %in% list.files(path = paste0("../files/", a, "/", aL))){
-          yList <- list.files(path = paste0("../files/", a,"/", aL, "/PNGS"), pattern = ".png")
+        if("PNGS" %in% list.files(path = paste0("files/", a, "/", aL))){
+          yList <- list.files(path = paste0("files/", a,"/", aL, "/PNGS"), pattern = ".png")
           for (b in yList){
             if(T %in% sapply(c("_CH1", "_CH2", "_CH3", "_CH4"), grepl, strsplit(b, "png")[[1]][1])){
               b_sub <- strsplit(b, "_")[[1]][2]
@@ -38,10 +38,10 @@ reName <- function(){
               x <- unique(hit[b_sub][,1])
               x <- paste0(x, ".png")
               if (a != x){
-                file.rename(paste0("../files/", a,"/", aL, "/PNGS/", b), paste0("../files/", a, "/", aL, "/PNGS/", x))
+                file.rename(paste0("files/", a,"/", aL, "/PNGS/", b), paste0("files/", a, "/", aL, "/PNGS/", x))
               }
             } else if(grepl("Overlay.png", b)) {
-              file.rename(paste0("../files/", a,"/", aL, "/PNGS/", b), paste0("../files/", a, "/", aL, "/PNGS/overlay.png"))
+              file.rename(paste0("files/", a,"/", aL, "/PNGS/", b), paste0("files/", a, "/", aL, "/PNGS/overlay.png"))
             }
           }
         }
