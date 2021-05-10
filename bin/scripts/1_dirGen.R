@@ -4,7 +4,9 @@
 # args = commandArgs(trailingOnly=TRUE)
 
 # here's the actual function to automatically generate the directories based on the schema file
-dirGen <- function(idType="name"){
+dirGen <- function(idType="name",
+                   singleImage="auto",
+                   imageNumber=5){
   #First, lets generate the appropriate folders
   dirList <- list.files()
   if(!"files" %in% dirList){
@@ -38,8 +40,22 @@ dirGen <- function(idType="name"){
     dirName <- paste0("files/", a)
     if(!dir.exists(dirName))
     dir.create(dirName)
+    if (singleImage == "single"){
+      tip <- 1
+      for (b in 1:imageNumber){
+        imageDir <- paste0("image_", tip)
+        dir.create(paste0("files/", a, "/", imageDir))
+        tip <- tip+1
+      }
+    }
   }
 }
 
-runType <- readline(prompt = "Generating directories. Should this be done by name or number (default - name): ")
-dirGen(idType = runType)
+runType <- readline(prompt = "Generating directories. Should this be done by name or number (NAME/number): ")
+singleImages <- readline(prompt = "Are you taking single images, or automated capture (AUTO/single): ")
+if (singleImages == "single"){
+  imagesNumber <- as.integer(readline(prompt = "How many images per condition (default = 5): "))
+}
+dirGen(idType = runType,
+       singleImage = singleImages,
+       imageNumber = imagesNumber)
