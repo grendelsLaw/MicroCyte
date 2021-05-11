@@ -1,9 +1,10 @@
 //YggData is the ThompsonLab ImageJ macro for single cell analysis of IFA images
 
+nucleusSize="30-200";
+dnaMinThreshold=35;
+
 runPeri=false;
 enlargeFactor="3";
-nucleusSize="30-200";
-dnaMinThreshold=48;
 
 runWC=true;
 wcTarget1="dna";
