@@ -1,12 +1,16 @@
-explore <- function(filename = "../data/experiment.csv",
+explore <- function(fileName = "data/experiment.csv",
                     sortBy = "name_id",
                     categories = T,
                     cellCycle = T,
-                    scheme = "../schema.csv",
-                    saveFile = "../data/experiment_explored.csv"){
+                    scheme = "schema.csv",
+                    saveFile = "data/experiment_explored.csv"){
   
   #First, categories from the dataframe are defined
-  dFrame <- read.csv(file = filename)
+  if(is.data.frame(fileName)){
+    dFrame <- fileName
+  } else {
+    dFrame <- read.csv(file = fileName)
+  }
   dFrame["placeHolder"] <- dFrame[sortBy]
   if(categories == T){
     catNum <- as.numeric(readline(prompt = "How many categories would you like to explore: "))
@@ -23,6 +27,8 @@ explore <- function(filename = "../data/experiment.csv",
       }
       sortBy <- "placeHolder"
     }
+  } else {
+    catNum <- 0
   }
   
   datum <- data.frame("name_id" = unique(unlist(dFrame[sortBy])))
@@ -37,6 +43,17 @@ explore <- function(filename = "../data/experiment.csv",
     }
   }
   
+  if (categories == T & catNum > 0){
+    for (noi in names(datum)[2:length(names(datum))]){
+      if (!exists("check")){
+        check <- unlist(datum[noi])
+      } else {
+        check <- paste(check, unlist(datum[noi]), sep = "_")
+      }
+    }
+    datum$totalName <- check
+  }
+  
   #This pulls the category data per population
   if (categories == T & catNum > 0){
     for (b in catTab$catName){
@@ -47,8 +64,21 @@ explore <- function(filename = "../data/experiment.csv",
       }
     }
   }
-  datum$total <- table(dFrame[sortBy])
-
+  
+  datum$total <- 0
+  for (totalSet in unique(datum$name_id)){
+    datum[datum$name_id == totalSet,]$total <- nrow(dFrame[dFrame["placeHolder"]==totalSet,])
+  }
+  if (categories == T & catNum > 0){
+    datum$subsetTotal <- datum$total
+    datum$total <- 0
+    for (totalSet in unique(datum$totalName)){
+      totalCount <- sum(subset(datum, totalName == totalSet)$subsetTotal)
+      datum[datum$totalName == totalSet,]$total <- totalCount
+    }
+    datum$subsetPercent <- round(100*datum$subsetTotal/datum$total, 2)
+  }
+  
   if (cellCycle == T){
     datum$sPhase <- NA
     datum$G1 <- NA
