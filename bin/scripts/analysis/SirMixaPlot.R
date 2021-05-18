@@ -386,7 +386,7 @@ normalizer <- function(){
   edu_neg <- density(cells$ALIMean_NUC_edu)$x[bigBin]+0.5
   edu_hist <- ggplot(cells, aes(ALIMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
   print(edu_hist)
-  g1_good <- readline(prompt = paste0("Is ", format(round(edu_neg, 2), nsmall = 2), " representative of the EdU cutoff? (y/n) "))
+  g1_good <- readline(prompt = paste0("Is ", format(round(edu_neg, 2), nsmall = 2), " representative of the EdU cutoff? (Y/n) "))
   if (g1_good == "n"){
     edu_neg = as.numeric(readline(prompt = "What value should EdU be cutoff as negative? "))
     edu_hist <- ggplot(cells, aes(ALIMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
@@ -409,7 +409,7 @@ normalizer <- function(){
   diploid <- density(eduNegCells$log2_dna)$x[bigBin]
   dna_hist <<- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid)+xlab("DNA content")
   print(dna_hist)
-  g1_good <- readline(prompt = paste0("Is ", format(round(diploid, 2), nsmall = 2), " representative of the 2N peak? (y/n) "))
+  g1_good <- readline(prompt = paste0("Is ", format(round(diploid, 2), nsmall = 2), " representative of the 2N peak? (Y/n) "))
   if (g1_good == "n"){
     diploid = as.numeric(readline(prompt = "What is the value of the 2N peak? "))
     dna_hist <<- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid)+xlab("DNA content")
@@ -432,8 +432,8 @@ normalizer <- function(){
     }
   }
   
-  ckF <- readline(prompt = paste0("Is the filename ", thingee, "? (y/n) "))
-  if (ckF == "y"){
+  ckF <- readline(prompt = paste0("Is the filename ", thingee, "? (Y/n) "))
+  if (ckF != "n"){
     write.csv(cells, file = thingee, row.names = FALSE)
   } else{
     thingee <<-readline(prompt = 'What is the name of the file: ')
@@ -775,21 +775,6 @@ cb_black <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", 
 cellCycle_colors <- c("#D4D4D4", "#98C84C", "#23B8CC", "#F16B1A", "#E5001C")
 
 
-theme_general <- theme(legend.position = "right", 
-                        legend.text = element_text(size = 15), 
-                        legend.title = element_text(size = 18), 
-                        axis.line = element_line(color = "black", size = 1.5), 
-                        axis.ticks = element_line(color = "black", size = 1.5), 
-                        panel.grid.major = element_blank(), 
-                        panel.grid.minor = element_blank(), 
-                        axis.title = element_text(size = 36, family = "sans", color = "black"), 
-                        axis.text = element_text(size = 24, family = "sans", color = "black"),
-                        legend.key.size = unit(1.5, "cm"),
-                        panel.grid.major = element_blank(), 
-                        panel.grid.minor = element_blank(),
-                        panel.background = element_rect(fill = "transparent",colour = NA),
-                        plot.background = element_rect(fill = "transparent",colour = NA)
-)
 
 #-----------------------------------------------------------------------------------------------------------
 #Program opens required packages
