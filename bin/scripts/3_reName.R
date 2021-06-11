@@ -2,6 +2,7 @@
 
 reName <- function(){
   schema <- read.csv("schema.csv")
+  nameTargets <- names(schema)[2:5]
   xList <- list.files(path = "files/")
   for (a in xList){
     if (!grepl(".ijm", x = a)){
@@ -17,7 +18,7 @@ reName <- function(){
         yList <- list.files(path = paste0("files/", a,"/", aL), pattern = ".tif")
         for (b in yList){
           #print(b)
-          if(T %in% sapply(c("_CH1", "_CH2", "_CH3", "_CH4"), grepl, strsplit(b, ".tif")[[1]][1])){
+          if(T %in% sapply(nameTargets, grepl, strsplit(b, ".tif")[[1]][1])){
             b_sub <- strsplit(b, "_")[[1]][2]
             b_sub <- strsplit(b_sub, ".tif")[[1]][1]
             x <- unique(hit[b_sub][,1])
@@ -32,7 +33,7 @@ reName <- function(){
         if("PNGS" %in% list.files(path = paste0("files/", a, "/", aL))){
           yList <- list.files(path = paste0("files/", a,"/", aL, "/PNGS"), pattern = ".png")
           for (b in yList){
-            if(T %in% sapply(c("_CH1", "_CH2", "_CH3", "_CH4"), grepl, strsplit(b, "png")[[1]][1])){
+            if(T %in% sapply(nameTargets, grepl, strsplit(b, "png")[[1]][1])){
               b_sub <- strsplit(b, "_")[[1]][2]
               b_sub <- strsplit(b_sub, ".png")[[1]][1]
               x <- unique(hit[b_sub][,1])
@@ -53,7 +54,8 @@ reName <- function(){
 # If you notice that the naming scheme isn't quite right, use this function to reset the original file architecture
 # Then fix the schema file, and re-run reName
 reset_names <- function(){
-  xList <- list.files(path = "../files/")
+  xList <- list.files(path = "files/")
+  setwd("files")
   for (a in xList){
     if (!grepl(".ijm", x = a)){
       setwd(a)
@@ -80,4 +82,5 @@ reset_names <- function(){
     }
     setwd("../")
   }
+  setwd("../")
 }
