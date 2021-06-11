@@ -105,7 +105,9 @@ while (TRUE) {
           } else {
             for (schemaNames in schemeName){
               schemaNames <- as.character(schemaNames)
-              unite(full = full, pattern = schemaNames, sampleSize = partial_amount)
+              for (nameo in schemaNames){
+                unite(full = full, pattern = nameo, sampleSize = partial_amount)
+              }
             }
           }
           
@@ -162,7 +164,9 @@ while (TRUE) {
         } else {
           for (schemaNames in schemeName){
             schemaNames <- as.character(schemaNames)
-            unite(full = full, pattern = schemaNames, sampleSize = partial_amount)
+            for (nameo in schemaNames){
+              unite(full = full, pattern = nameo, sampleSize = partial_amount)
+            }
           }
         }
         
@@ -208,7 +212,9 @@ while (TRUE) {
       } else {
         for (schemaNames in schemeName){
           schemaNames <- as.character(schemaNames)
-          unite(full = full, pattern = schemaNames, sampleSize = partial_amount)
+          for (nameo in schemaNames){
+            unite(full = full, pattern = nameo, sampleSize = partial_amount)
+          }
         }
       }
       
@@ -290,7 +296,9 @@ while (TRUE) {
       } else {
         for (schemaNames in schemeName){
           schemaNames <- as.character(schemaNames)
-          unite(full = full, pattern = schemaNames, sampleSize = partial_amount)
+          for (nameo in schemaNames){
+            unite(full = full, pattern = nameo, sampleSize = partial_amount)
+          }
         }
       }
       
