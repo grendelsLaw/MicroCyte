@@ -207,7 +207,7 @@ imaGen <- function(directory="./",
     }
     # Now begins generating a final ROI file for funnies
     interim <- read.csv(filez[1])
-    colo <- substr(filez[1], 1, nchar(i)-4)
+    colo <- substr(filez[1], 1, nchar(i)-2)
     interim$roi <- colo
 
     if(length(filez) > 1){
@@ -350,6 +350,7 @@ imaGen <- function(directory="./",
         interim <- rbind(interim, x)
       }
     }
+    
     #Now things get saved
     write.csv(interim, file = paste0("../../",filnam, "_PERI_all.csv"), row.names = F)
     write.csv(cells, file = paste0(filnam, "_PN_all.csv"), row.names = F)
@@ -402,6 +403,19 @@ imaGen <- function(directory="./",
   }
   for (ab in 6:ncol(hit)){
     cells[names(hit)[ab]] <- hit[ab]
+    if (peri==T){
+      #print("adding peri meta")
+      peris <- read.csv(paste0("../",filnam, "_PERI_all.csv"))
+      #print(head(peris))
+      peris[names(hit)[ab]] <- hit[ab]
+      #print(head(peris))
+      write.csv(peris, file = paste0("../",filnam, "_PERI_all.csv"), row.names = F)
+    }
+    if(wc==T){
+      rois <- read.csv(paste0("../",filnam, "_ROI_all.csv"))
+      rois[names(hit)[ab]] <- hit[ab]
+      write.csv(rois, file = paste0("../",filnam, "_ROI_all.csv"), row.names = F)
+    }
   }
   #And finally save the whole thing
   write.csv(cells, file = paste0("../",filnam, "_WN_all.csv"), row.names = F)
