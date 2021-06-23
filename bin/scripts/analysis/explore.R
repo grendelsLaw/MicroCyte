@@ -3,6 +3,9 @@ explore <- function(fileName = "data/experiment.csv",
                     categories = T,
                     cellCycle = T,
                     scheme = "schema.csv",
+                    icellate = F,
+                    vSize = F,
+                    random = T,
                     saveFile = "data/experiment_explored.csv"){
   
   #First, categories from the dataframe are defined
@@ -68,6 +71,22 @@ explore <- function(fileName = "data/experiment.csv",
   datum$total <- 0
   for (totalSet in unique(datum$name_id)){
     datum[datum$name_id == totalSet,]$total <- nrow(dFrame[dFrame["placeHolder"]==totalSet,])
+    if (icellate != F & is.numeric(icellate)){
+      source("bin/scripts/analysis/icellate.R")
+      if(icellate >= nrow(dFrame[dFrame["placeHolder"]==totalSet,])){
+        icellate(targetCells = dFrame[dFrame["placeHolder"]==totalSet,], 
+                 folderName = totalSet, 
+                 verifySize = vSize, 
+                 samplingNumber = nrow(dFrame[dFrame["placeHolder"]==totalSet,]), 
+                 randomize = random)
+      } else {
+        icellate(targetCells = dFrame[dFrame["placeHolder"]==totalSet,], 
+                 folderName = totalSet, 
+                 verifySize = vSize, 
+                 samplingNumber = icellate, 
+                 randomize = random)
+      }
+    }
   }
   if (categories == T & catNum > 0){
     datum$subsetTotal <- datum$total
