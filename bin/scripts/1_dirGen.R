@@ -6,7 +6,8 @@
 # here's the actual function to automatically generate the directories based on the schema file
 dirGen <- function(idType="name",
                    singleImage="auto",
-                   imageNumber=5){
+                   imageNumber=5,
+                   numberOfTargets=4){
   #First, lets generate the appropriate folders
   dirList <- list.files()
   if(!"files" %in% dirList){
@@ -21,11 +22,12 @@ dirGen <- function(idType="name",
   
   #reads the schema file
   schema <- read.csv("schema.csv")
+  startingPoint <- numberOfTargets+2
   # if the passed argument is "number", the notebookID is used, otherwise a descriptive name is generated from the optional data tags
-  if (idType == "number" | ncol(schema)<6){
+  if (idType == "number" | ncol(schema) < startingPoint){
     xList <- unique(schema$notebook_id)
   } else {
-    for (a in 6:ncol(schema)){
+    for (a in startingPoint:ncol(schema)){
       if (exists("xList") & names(schema)[a] != "name_id"){
         xList <- paste(xList, schema[,a], sep = "_")
       } else if (names(schema)[a] != "name_id"){
@@ -54,8 +56,15 @@ dirGen <- function(idType="name",
 runType <- readline(prompt = "Generating directories. Should this be done by name or number (NAME/number): ")
 singleImages <- readline(prompt = "Are you taking single images, or automated capture (AUTO/single): ")
 if (singleImages == "single"){
-  imagesNumber <- as.integer(readline(prompt = "How many images per condition (default = 5): "))
+  imagesNumber <- as.integer(readline(prompt = "How many images per condition (Default = 5): "))
+}
+ticko <- readline(prompt = "How many targets are listed in the schema (Default 4): ")
+if (is.character(ticko)){
+  ticko <- 4
+} else {
+  ticko <- as.numeric(ticko)
 }
 dirGen(idType = runType,
        singleImage = singleImages,
-       imageNumber = imagesNumber)
+       imageNumber = imagesNumber,
+       numberOfTargets = ticko)
