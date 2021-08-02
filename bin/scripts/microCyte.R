@@ -3,7 +3,7 @@ options(warn = -1)
 partial_amount <- 1000
 
 scripts <- data.frame(
-  "Number" = c(0, 1, 2, 3, 4, 5, 6, 7, 8),
+  "Number" = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
   "Script_Name" = c("Setup",
                     "dirGen",
                     "purgo",
@@ -12,7 +12,8 @@ scripts <- data.frame(
                     "concato",
                     "unite",
                     "full run",
-                    "reset names")
+                    "reset names",
+                    "analyze")
 )
 print("Welcome to MicroCyte. Be sure to have edited your schema file before beginning. Here are your options:")
 print(scripts)
@@ -310,6 +311,14 @@ while (TRUE) {
   } else if (option == "8"){
     source("bin/scripts/3_reName.R")
     reset_names()
+  } else if (option == "9"){
+    print("Sourcing the analysis scripts...")
+    source("bin/scripts/analysis/SirMixaPlot.R")
+    source("bin/scripts/analysis/explore.R")
+    source("bin/scripts/analysis/cap_ifa.R")
+    source("bin/scripts/analysis/icellate.R")
+    print("Good luck with your analysis!")
+    break
   } else {
     print("Sorry, I didn't catch that. Please try again, or type 'end' to finish.")
     print(scripts)
