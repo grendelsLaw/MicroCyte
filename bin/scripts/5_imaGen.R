@@ -401,6 +401,11 @@ imaGen <- function(directory="./",
   } else {
     hit <- subset(schema, name_id == xL)
   }
+  if (nrow(hit > 1)){
+    print("More than one scheme match found.")
+    print("The first match will be used but it is recommended that your ammend the schema file to avoid other issues")
+    hit <- hit[1,]
+  }
   for (ab in 6:ncol(hit)){
     cells[names(hit)[ab]] <- hit[ab]
     if (peri==T){
