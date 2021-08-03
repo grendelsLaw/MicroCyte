@@ -6,7 +6,8 @@ explore <- function(fileName = "data/experiment.csv",
                     icellate = F,
                     vSize = F,
                     random = T,
-                    saveFile = "data/experiment_explored.csv"){
+                    saveFile = "data/experiment_explored.csv",
+                    addend = T){
   
   #First, categories from the dataframe are defined
   if(is.data.frame(fileName)){
@@ -120,6 +121,10 @@ explore <- function(fileName = "data/experiment.csv",
       datum[datum$name_id ==a,]$rS_MFI <- mean(set[set$edu == "Positive" & set$ploidy == ">4N",]$edu_norm)
       datum[datum$name_id ==a,]$rS_MDI <- mean(set[set$edu == "Positive" & set$ploidy == ">4N",]$dna_norm)
     }
+  }
+  if (addend == T){
+    datum_total <- read.csv(saveFile)
+    datum <- rbind(datum_total, datum)
   }
   write.csv(datum, file = saveFile, row.names = F)
 }
