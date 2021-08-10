@@ -8,19 +8,15 @@ reName <- function(){
     if (!grepl(".ijm", x = a)){
       aList <- list.files(path = paste0("files/", a))
       for (aL in aList){
-        #print(aL)
         if(a %in% unique(schema$notebook_id)){
           hit <- subset(schema, notebook_id == a)[1,]
         } else if (a %in% unique(schema$name_id)){
           hit <- subset(schema, name_id == a)[1,]
         }
-        #print(hit)
         yList <- list.files(path = paste0("files/", a,"/", aL), pattern = ".tif")
         for (b in yList){
-          #print(b)
           if(T %in% sapply(nameTargets, grepl, strsplit(b, ".tif")[[1]][1])){
-            b_sub <- strsplit(b, "_")[[1]][2]
-            b_sub <- strsplit(b_sub, ".tif")[[1]][1]
+            b_sub <- nameTargets[sapply(nameTargets, grepl, strsplit(b, ".tif")[[1]][1])]
             x <- unique(hit[b_sub][,1])
             x <- paste0(x, ".tif")
             if (a != x){
@@ -34,8 +30,7 @@ reName <- function(){
           yList <- list.files(path = paste0("files/", a,"/", aL, "/PNGS"), pattern = ".png")
           for (b in yList){
             if(T %in% sapply(nameTargets, grepl, strsplit(b, "png")[[1]][1])){
-              b_sub <- strsplit(b, "_")[[1]][2]
-              b_sub <- strsplit(b_sub, ".png")[[1]][1]
+              b_sub <- nameTargets[sapply(nameTargets, grepl, strsplit(b, ".tif")[[1]][1])]
               x <- unique(hit[b_sub][,1])
               x <- paste0(x, ".png")
               if (a != x){
