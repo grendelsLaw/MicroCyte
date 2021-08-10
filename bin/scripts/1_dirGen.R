@@ -56,7 +56,15 @@ dirGen <- function(idType="name",
 runType <- readline(prompt = "Generating directories. Should this be done by name or number (NAME/number): ")
 singleImages <- readline(prompt = "Are you taking single images, or automated capture (AUTO/single): ")
 if (singleImages == "single"){
-  imagesNumber <- as.integer(readline(prompt = "How many images per condition (Default = 5): "))
+  imagesNumber <- readline(prompt = "How many images per condition (Default = 5): ")
+  if (is.na(as.numeric(imagesNumber))) {
+    imagesNumber <- 5
+    print(paste0("Generating ", imagesNumber, " image folders in each condition..."))
+  } else {
+    imagesNumber <- as.numeric(imagesNumber)
+    print(paste0("Generating ", imagesNumber, " image folders in each condition..."))
+  }
+
 }
 ticko <- readline(prompt = "How many targets are listed in the schema (Default 4): ")
 if (is.character(ticko)){
