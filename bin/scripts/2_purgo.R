@@ -69,29 +69,24 @@ alakazam <- function(df = "QC/sampledPixels.csv",
   overlappee_file <- list.files(pattern = overlappee)[1]
   overlappee <- substr(overlappee_file, 1, nchar(list.files(pattern = overlappee)[1])-4)
   
-  ticky <- match(paste0("X",overlapper), names(dato))
-  ricky <- match(paste0("X",overlappee) , names(dato))
-  #print(ticky)
-  #print(ricky)
-  
-  dato <- split(dato, cut(dato[,ticky], breaks = breck))
+  dato <- split(dato, cut(dato[,grepl(overlapper, names(dato))], breaks = breck))
   for (i in dato[1:4]){
     if (exists("distro")){
       distro <- rbind(distro,
-                      head(i[order(i[,ricky]),], n = pool))
+                      head(i[order(i[,grepl(overlappee, names(i))]),], n = pool))
     } else {
-      distro <- head(i[order(i[,ricky]),], n = pool)
+      distro <- head(i[order(i[,grepl(overlappee, names(i))]),], n = pool)
     }
   }
   dato <- read.csv(df)
-  lineEQ <- suppressMessages(lm(as.double(unlist(distro[paste0("X",overlappee)]))~as.double(unlist(distro[paste0("X",overlapper)])), data=distro))
+  lineEQ <- suppressMessages(lm(distro[,grepl(overlappee, names(distro))]~distro[,grepl(overlapper, names(distro))], data=distro))
   lineCO <- as.numeric(lineEQ$coefficients[2])
   lineIN <- as.numeric(lineEQ$coefficients[1])
   linePV <- summary(lineEQ[[4]][8])
   
   draft <- ggplot(data = dato, 
-                  aes(x=as.double(unlist(dato[paste0("X", overlapper)])), 
-                      y=as.double(unlist(dato[paste0("X", overlappee)]))))+
+                  aes(x=dato[,grepl(overlapper, names(dato))], 
+                      y=dato[,grepl(overlappee, names(dato))]))+
     geom_point()+
     theme_classic()+
     ylab(overlappee)+
