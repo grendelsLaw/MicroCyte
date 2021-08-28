@@ -13,7 +13,8 @@ icellate <- function(targetCells,
                      lineAnalyses = T,
                      numberOfLines = 2,
                      lineGraphs = T,
-                     initialAngle = 0){
+                     initialAngle = 0,
+                     randomSamplerDenom = 10){
   #Set a parameter to allow size verification
   sizeVerified <- F
   
@@ -142,7 +143,8 @@ icellate <- function(targetCells,
                      linesNumber = numberOfLines,
                      lineLength = cellLength,
                      graphing = lineGraphs,
-                     offset = initialAngle)
+                     offset = initialAngle, 
+                     totalCorrPixFraction = randomSamplerDenom)
       }
       setwd("../")
     }
@@ -155,6 +157,7 @@ lineAnalysis <- function(midX,
                         imageName,
                         linesNumber = 2,
                         lineLength,
+                        totalCorrPixFraction = 10, 
                         graphing = T, 
                         offset = 0){
   # First we make a directory to store the graphs and lines
@@ -186,6 +189,9 @@ lineAnalysis <- function(midX,
       } else {
         lineData <- cbind(lineData, lineImage[strsplit(pngImage, ".png")[[1]][1]])
       }
+      # Then we randomly select a fraction of the pixels to save for whole cell analysis
+      randomPoints <- lineData[sample(nrow(lineData), nrow(lineData)/totalCorrPixFraction),]
+      write.csv(randomPoints, "lineAnalyses/WholeCellRandom.csv", row.names = F)
     }
   }
       
