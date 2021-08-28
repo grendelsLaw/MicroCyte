@@ -182,8 +182,12 @@ for (ab in dirz){
          kadabra()
          alakazam()
        } else if (runType == "manual"){
+         scheme <- read.csv("schema.csv")
+         print(names(scheme)[2:5])
+         olapper <- readline(prompt = "Which image set is the overlapper? ")
+         olappee <- readline(prompt = "Which image set is the overlappee? ")
          kadabra()
-         alakazam(overlapper = args[2], overlappee = args[3])
+         alakazam(overlapper = olapper, overlappee = olappee)
        } else if (runType == "full"){
          kadabra()
          alakazam(overlapper = "CH1", overlappee = "CH2", color = "red")
