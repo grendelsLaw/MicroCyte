@@ -167,6 +167,7 @@ alakazam <- function(df = "QC/sampledPixels.csv",
 # }
 
 runType <- readline(prompt = "What should the runtype be (auto/manual/full/none): ")
+scheme <- names(read.csv("schema.csv"))[2:5]
 setwd("files/")
 dirz <- list.files()
 for (ab in dirz){
@@ -180,15 +181,18 @@ for (ab in dirz){
        abra()
        if(runType == "auto"){
          kadabra()
-         alakazam()
+         alakazam(overlapper = scheme[2], overlappee = scheme[1])
        } else if (runType == "manual"){
          kadabra()
-         alakazam(overlapper = args[2], overlappee = args[3])
+         print(scheme)
+         oLapper <- readline(prompt = "Which is the overlapper: ")
+         oLappee <- readline(prompt = "Which is the overlappee: ")
+         alakazam(overlapper = oLapper, overlappee = oLappee)
        } else if (runType == "full"){
          kadabra()
-         alakazam(overlapper = "CH1", overlappee = "CH2", color = "red")
-         alakazam(overlapper = "CH2", overlappee = "CH3", color = "blue")
-         alakazam(overlapper = "CH3", overlappee = "CH4", color = "green")
+         alakazam(overlapper = scheme[4], overlappee = scheme[3], color = "red")
+         alakazam(overlapper = scheme[3], overlappee = scheme[2], color = "blue")
+         alakazam(overlapper = scheme[2], overlappee = scheme[1], color = "green")
        }
      }
      setwd("../")
