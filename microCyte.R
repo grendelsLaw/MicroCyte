@@ -313,10 +313,10 @@ while (TRUE) {
     reset_names()
   } else if (option == "9"){
     print("Sourcing the analysis scripts...")
-    source("bin/scripts/scripts/analysis/SirMixaPlot.R")
-    source("bin/scripts/scripts/analysis/explore.R")
-    source("bin/scripts/scripts/analysis/cap_ifa.R")
-    source("bin/scripts/scripts/analysis/icellate.R")
+    source("bin/scripts/analysis/SirMixaPlot.R")
+    source("bin/scripts/analysis/explore.R")
+    source("bin/scripts/analysis/cap_ifa.R")
+    source("bin/scripts/analysis/icellate.R")
     print("Good luck with your analysis!")
     break
   } else {
