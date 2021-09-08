@@ -175,27 +175,29 @@ for (ab in dirz){
    setwd(ab)
    filz <- list.files()
    for(bc in filz){
-     setwd(bc)
-     if(!"originals" %in% list.files()){
-       print(paste0("Running purgo on file ", ab, " picture ", bc, "."))
-       abra()
-       if(runType == "auto"){
-         kadabra()
-         alakazam(overlapper = scheme[2], overlappee = scheme[1])
-       } else if (runType == "manual"){
-         kadabra()
-         print(scheme)
-         oLapper <- readline(prompt = "Which is the overlapper: ")
-         oLappee <- readline(prompt = "Which is the overlappee: ")
-         alakazam(overlapper = oLapper, overlappee = oLappee)
-       } else if (runType == "full"){
-         kadabra()
-         alakazam(overlapper = scheme[4], overlappee = scheme[3], color = "red")
-         alakazam(overlapper = scheme[3], overlappee = scheme[2], color = "blue")
-         alakazam(overlapper = scheme[2], overlappee = scheme[1], color = "green")
+     if(bc != "images"){
+       setwd(bc)
+       if(!"originals" %in% list.files()){
+         print(paste0("Running purgo on file ", ab, " picture ", bc, "."))
+         abra()
+         if(runType == "auto"){
+           kadabra()
+           alakazam(overlapper = scheme[2], overlappee = scheme[1])
+         } else if (runType == "manual"){
+           kadabra()
+           print(scheme)
+           oLapper <- readline(prompt = "Which is the overlapper: ")
+           oLappee <- readline(prompt = "Which is the overlappee: ")
+           alakazam(overlapper = oLapper, overlappee = oLappee)
+         } else if (runType == "full"){
+           kadabra()
+           alakazam(overlapper = scheme[4], overlappee = scheme[3], color = "red")
+           alakazam(overlapper = scheme[3], overlappee = scheme[2], color = "blue")
+           alakazam(overlapper = scheme[2], overlappee = scheme[1], color = "green")
+         }
        }
+       setwd("../")
      }
-     setwd("../")
    }
    setwd("../")
  }
