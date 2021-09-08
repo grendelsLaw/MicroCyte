@@ -175,7 +175,8 @@ for (ab in dirz){
    setwd(ab)
    filz <- list.files()
    for(bc in filz){
-     if(bc != "images"){
+     if(bc != "images" & bc != "Thumbs.db"){
+       print(bc)
        setwd(bc)
        if(!"originals" %in% list.files()){
          print(paste0("Running purgo on file ", ab, " picture ", bc, "."))
