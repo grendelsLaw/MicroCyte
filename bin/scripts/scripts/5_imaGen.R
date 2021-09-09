@@ -438,7 +438,7 @@ for (xL in xList){
     print(paste0("Running ImaGen on the ", xL," folder:"))
     yList <- list.files()
     for(yL in yList){
-      if(!grepl("_all.csv", yL)){
+      if(!grepl("_all.csv", yL) & yL != "Thumbs.db"){
         print(paste0("Combining data from image ", yL))
         setwd(paste0(yL, "/PNGS/"))
         checkList <- list.files()
