@@ -14,6 +14,7 @@ foci_caller <- function(df = cells,
                         midpointer_y = "YM_NUC_dna", 
                         wiggle = 4,
                         fileName = "NN_all_cells.csv"){
+  cat("Running foci_caller...\n")
   
   # Collect only the infected cells
   foci_cells <- df[df[variable] == variable_subset,]
@@ -26,7 +27,7 @@ foci_caller <- function(df = cells,
   # Iterate through each infected cells to generate a list of distances from that cell to every cells in the image
   for (a in 1:nrow(foci_cells)){
     # Get the cell ID
-    cellID_a <- as.character(foci_cells[a,]$Number)
+    cellID_a <- foci_cells[a,]$Number
     # create a dummy dataset to work the math on
     distList <- df
     # Get the X and Y coordinates of the infected cell
@@ -38,17 +39,15 @@ foci_caller <- function(df = cells,
     distList <- distList[order(distList$distance),]
     # Generate a misses variable to use the wiggle variable
     misses <- 0
-    
+    focus <- distList[distList$Number == cellID_a,]
+
     # Now we go through the sorted dummy list to find a list of the closest, infected cells
-    for (b in 1:nrow(distList)){
+    for (b in 1:nrow(distList[distList$Number != cellID_a,])){
       # Starting with itself, if the cell is infected, its number ID is added to the list
       if (distList[b,][variable] == variable_subset){
         # If the list doesn't exist, it is made and the number ID is added. Otherwise, its just added to the list
-        if(!exists("focus")){
-          focus <- distList[b,]
-        } else {
-          focus <- rbind(focus, distList[b,])
-        }
+        focus <- rbind(focus, distList[b,])
+        
         # If the next closest cell *isn't* infected, the misses variable is increased until it surpasses the wiggle variable
         # If this happens, the iteration through the sorted dummy dataset is ended and
         # the length and composition of the infected list is added to the original dataset
@@ -70,7 +69,7 @@ foci_caller <- function(df = cells,
       }
     }
   }
-  print("foci called")
+  cat("foci called\n")
   # The new dataset is saved
   write.csv(df, fileName, row.names = F)
   # The next function will condense the lists of infected neighbors based on overlapping number IDs
@@ -83,15 +82,16 @@ foci_compact <- function(fileName = "assigned.csv",
                          variable = "nProtein",
                          variable_subset = "Positive", 
                          overlap = 1){
-  cells <- read.csv(fileName)
+  cat(paste0("Running foci_compact from ", fileName, ".\n"))
+  cells_new <- read.csv(fileName)
   #First, we get the cells that are infected
-  fList <- cells[cells[variable] == variable_subset,]
+  fList <- cells_new[cells_new[variable] == variable_subset,]
   #Then we'll order them from great to lowest
   fList <- fList[order(fList$NNs, decreasing = T),]
   # Then we create the hash to store the focal numbers and initialize the count
   focal_hash <- hash()
   foci_count <- 1
-  
+  cat("Hash generated...\n")
   
   for (a in 1:nrow(fList)){
     found <- F
@@ -125,7 +125,7 @@ foci_compact <- function(fileName = "assigned.csv",
     }
   }
   
-  
+  cat("Finding overlapping hashes...\n")
   for (a in ls(focal_hash)){
     found <- F
     b <- focal_hash[[a]]
@@ -147,29 +147,30 @@ foci_compact <- function(fileName = "assigned.csv",
     }
   }
 
-  
-  cells$focus <- 0
-  cells$focal_size <- 0
+  cat("Determining probabilities...\n")
+  cells_new$focus <- 0
+  cells_new$focal_size <- 0
   for (a in ls(focal_hash)){
     c <- length(unique(focal_hash[[a]]))
     for (b in focal_hash[[a]]){
-      cells[cells$Number == b,]$focus <- a 
+      cells_new[cells_new$Number == b,]$focus <- a 
     }
-    cells[cells["focus"] == a,]["focal_size"] <- c
+    cells_new[cells_new["focus"] == a,]["focal_size"] <- c
   }
-  cells$core_prob <- cells$NNs/cells$focal_size
-  cells$core_prob_norm <- 0
-  cells[is.na(cells$core_prob),]$core_prob <- 0
-  for (a in unique(cells$focus)){
-    cells[cells$focus == a,]$core_prob_norm <- 100*cells[cells$focus == a,]$core_prob/sum(cells[cells$focus == a,]$core_prob)
+  cells_new$core_prob <- cells_new$NNs/cells_new$focal_size
+  cells_new$core_prob_norm <- 0
+  cells_new[is.na(cells_new$core_prob),]$core_prob <- 0
+  for (a in unique(cells_new$focus)){
+    cells_new[cells_new$focus == a,]$core_prob_norm <- 100*cells_new[cells_new$focus == a,]$core_prob/sum(cells_new[cells_new$focus == a,]$core_prob)
   }
-  write.csv(cells, paste0("capIFA_",fileName), row.names = F)
+  write.csv(cells_new, paste0("data/capIFA_",strsplit(fileName, "/")[[1]][2]), row.names = F)
+  cat("Foci compacted.\n")
 }
 
 # This function should be run from the `files` directory and collects basic data on the plaques called in the earlier functions:
 # Image ID, Infected status, plaque number in that image, number of cells in that plaque, the lowest and highest core probabilities, and the average X/Y coordinate of that plaque
 plaque_data_collect <- function(){
-  fileList <- list.files()
+  fileList <- list.files(path = "data/", pattern = "capIFA")
   if(exists("plaque_info")){
     rm(plaque_info)
   }
@@ -179,65 +180,60 @@ plaque_data_collect <- function(){
   }
   
   for (a in fileList){
-    print(paste("Collecting data from", a))
-    setwd(a)
-    target <- list.files(pattern = "capIFA")
-    for (b in target){
-      print(paste("Opening file:",b))
-      cells <- read.csv(b)
-      if (!exists("all_cells")){
-        all_cells <- cells
-      } else {
-        if(F %in% (names(cells) == names(all_cells))){
-          for(i in names(all_cells)[!names(all_cells) %in% names(cells)]){
-            cells[i] <- 0
-          }
-          for(i in names(cells)[!names(cells) %in% names(all_cells)]){
-            all_cells[i] <- 0
-          }
+    print(paste("Opening file:",a))
+    cells <- read.csv(paste0("data/", a))
+    if (!exists("all_cells")){
+      all_cells <- cells
+    } else {
+      if(F %in% (names(cells) == names(all_cells))){
+        for(i in names(all_cells)[!names(all_cells) %in% names(cells)]){
+          cells[i] <- 0
         }
-        all_cells <- rbind(all_cells, cells)
+        for(i in names(cells)[!names(cells) %in% names(all_cells)]){
+          all_cells[i] <- 0
+        }
       }
-      for (c in unique(cells$focus)){
-        tittering <- subset(cells, focus == c)
-        if (!exists("plaque_info")){
-          plaque_info <- data.frame("image" = unique(tittering$image),
-                                    #"time" = unique(tittering$time),
-                                    #"dilution" = unique(tittering$dilution),
-                                    #"infection" = unique(tittering$infection),
-                                    "infected" = !unique(tittering$focus)==0,
-                                    #"thirdStain" = unique(tittering$thirdStain),
-                                    "plaque_number" = c,
-                                    "plaque_size" = max(tittering$focal_size),
-                                    #"percent_G1" = 100*nrow(subset(tittering, ploidy == "2N" & edu == "Negative"))/nrow(tittering),
-                                    #"percent_G2" = 100*nrow(subset(tittering, ploidy == "4N" & edu == "Negative"))/nrow(tittering),
-                                    #"percent_S" = 100*nrow(subset(tittering, edu != "Negative"))/nrow(tittering),
-                                    "low_prob" = min(tittering$core_prob),
-                                    "high_prob" = max(tittering$core_prob),
-                                    "Mean_x_position" = mean(tittering$X_NUC_dna),
-                                    "Mean_y_position" = mean(tittering$Y_NUC_dna))
-        }else {
-          interim <- data.frame("image" = unique(tittering$image),
-                                #"time" = unique(tittering$time),
-                                #"dilution" = unique(tittering$dilution),
-                                #"infection" = unique(tittering$infection),
-                                "infected" = !unique(tittering$focus)==0,
-                                #"thirdStain" = unique(tittering$thirdStain),
-                                "plaque_number" = c,
-                                "plaque_size" = max(tittering$focal_size),
-                                #"percent_G1" = 100*nrow(subset(tittering, ploidy == "2N" & edu == "Negative"))/nrow(tittering),
-                                #"percent_G2" = 100*nrow(subset(tittering, ploidy == "4N" & edu == "Negative"))/nrow(tittering),
-                                #"percent_S" = 100*nrow(subset(tittering, edu != "Negative"))/nrow(tittering),
-                                "low_prob" = min(tittering$core_prob),
-                                "high_prob" = max(tittering$core_prob),
-                                "Mean_x_position" = mean(tittering$X_NUC_dna),
-                                "Mean_y_position" = mean(tittering$Y_NUC_dna))
-          plaque_info <- rbind(plaque_info, interim)
-        }
+      all_cells <- rbind(all_cells, cells)
+    }
+    for (c in unique(cells$focus)){
+      tittering <- subset(cells, focus == c)
+      if (!exists("plaque_info")){
+        plaque_info <- data.frame("image" = unique(tittering$image),
+                                  "time" = unique(tittering$time),
+                                  "virus" = unique(tittering$virus),
+                                  "infection" = unique(tittering$infection),
+                                  "infected" = !unique(tittering$focus)==0,
+                                  #"thirdStain" = unique(tittering$thirdStain),
+                                  "plaque_number" = c,
+                                  "plaque_size" = max(tittering$focal_size),
+                                  "percent_G1" = 100*nrow(subset(tittering, ploidy == "2N" & edu == "Negative"))/nrow(tittering),
+                                  "percent_G2" = 100*nrow(subset(tittering, ploidy == "4N" & edu == "Negative"))/nrow(tittering),
+                                  "percent_S" = 100*nrow(subset(tittering, edu != "Negative"))/nrow(tittering),
+                                  "low_prob" = min(tittering$core_prob),
+                                  "high_prob" = max(tittering$core_prob),
+                                  "Mean_x_position" = mean(tittering$X_NUC_dna),
+                                  "Mean_y_position" = mean(tittering$Y_NUC_dna))
+      } else {
+        interim <- data.frame("image" = unique(tittering$image),
+                              "time" = unique(tittering$time),
+                              "virus" = unique(tittering$virus),
+                              "infection" = unique(tittering$infection),
+                              "infected" = !unique(tittering$focus)==0,
+                              #"thirdStain" = unique(tittering$thirdStain),
+                              "plaque_number" = c,
+                              "plaque_size" = max(tittering$focal_size),
+                              "percent_G1" = 100*nrow(subset(tittering, ploidy == "2N" & edu == "Negative"))/nrow(tittering),
+                              "percent_G2" = 100*nrow(subset(tittering, ploidy == "4N" & edu == "Negative"))/nrow(tittering),
+                              "percent_S" = 100*nrow(subset(tittering, edu != "Negative"))/nrow(tittering),
+                              "low_prob" = min(tittering$core_prob),
+                              "high_prob" = max(tittering$core_prob),
+                              "Mean_x_position" = mean(tittering$X_NUC_dna),
+                              "Mean_y_position" = mean(tittering$Y_NUC_dna))
+        plaque_info <- rbind(plaque_info, interim)
       }
     }
-    setwd("../")
   }
-  write.csv(plaque_info, "../data/plaque_data.csv", row.names = F)
-  write.csv(all_cells, "../data/experiment_data_w_coreProb.csv", row.names = F)
+  write.csv(plaque_info, "data/plaque_data.csv", row.names = F)
+  write.csv(all_cells, "data/experiment_data_w_coreProb_all_cells.csv", row.names = F)
 }
+
