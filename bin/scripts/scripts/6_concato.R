@@ -7,7 +7,7 @@ concato <- function(dirz = "files",
   xList <- list.files()
   for (xL in xList){
     print(paste0("Concatenating condition file ", xL))
-    if (!grepl("ijm", xL)){
+    if (!grepl("ijm", xL) & xL != "Thumbs.db"){
       setwd(xL)
       if (exists("cells")){
         rm(cells)
@@ -22,7 +22,7 @@ concato <- function(dirz = "files",
       periGo <- FALSE
       yList <- list.files()
       for(yL in yList){
-        if(!grepl(".csv",yL) & !grepl(".pdf", yL)){
+        if(!grepl(".csv",yL) & !grepl(".pdf", yL) & yL != "Thumbs.db"){
           setwd(yL)
           zList <- paste0(yL, "_WN_all.csv")
           rList <- paste0(yL, "_ROI_all.csv" )
