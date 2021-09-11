@@ -182,6 +182,10 @@ plaque_data_collect <- function(){
   for (a in fileList){
     print(paste("Opening file:",a))
     cells <- read.csv(paste0("data/", a))
+    cells$top_core <- "Negative"
+    for (b in unique(cells$focus)){
+      cells[cells$focus == b & cells$core_prob ==  max(cells[cells$focus == b,]$core_prob),]$top_core <- "Positive"
+    }
     if (!exists("all_cells")){
       all_cells <- cells
     } else {
