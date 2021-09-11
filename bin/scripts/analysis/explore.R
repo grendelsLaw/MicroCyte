@@ -6,36 +6,51 @@ explore <- function(fileName = "data/experiment.csv",
                     icellate = F,
                     vSize = F,
                     random = T,
+                    extraMetrics = F,
                     saveFile = "data/experiment_explored.csv"){
   
-  #First, categories from the dataframe are defined
+  #First, filename is a dataset, it is used, otherwise it is opened as a csv. If the file is not a csv, an error is printed
   if(is.data.frame(fileName)){
     dFrame <- fileName
-  } else {
+  } else if (grepl(".csv", fileName)){
     dFrame <- read.csv(file = fileName)
+  } else {
+    print("File or dataset not recognized.")
   }
+  
+  #A new, temporary copy of the name_id is created for seom reason?
   dFrame["placeHolder"] <- dFrame[sortBy]
+  
+  # if categories is true, you are asked home many categories to separate the data by
   if(categories == T){
     catNum <- as.numeric(readline(prompt = "How many categories would you like to explore: "))
     if (catNum > 0){
+      # The names to choose from are listed
       print(names(dFrame)[1:length(dFrame)-1])
+      # A temporary categories table is generated of an appropriate length
       catTab <- data.frame("catNum"=c(1:catNum))
+      # An image_id name is generated for reasons?
       catTab$catName <- "imageID"
 
+      # For each category number fiven, you're asked which variable should be used
       for (i in 1:catNum){
         catName <- readline(prompt = paste0("What is the name of category ", i, "? "))
+        # After the category is generated, each row's placeholder variable gets update based on its value of the category
         dFrame$placeHolder <- paste0(dFrame$placeHolder, "_", catName, ".")
         dFrame$placeHolder <- paste0(dFrame$placeHolder, unlist(dFrame[catName]))
         catTab[catTab$catNum == i,]$catName <- catName
       }
+      # Now that we have groups of unique category values, we cahnge the sortBy to use the lists rather than a name_id
       sortBy <- "placeHolder"
     }
   } else {
     catNum <- 0
   }
   
+  # a new dataframe is generated to store all the frequency data by using the unique values of the placeholder variable
   datum <- data.frame("name_id" = unique(unlist(dFrame[sortBy])))
   
+  # We read the schema to get metadata so we don't have to get it later
   schema <- read.csv(scheme)
   metaNames <- names(schema)[6:(length(names(schema))-1)]
   for (i in metaNames){
@@ -97,6 +112,7 @@ explore <- function(fileName = "data/experiment.csv",
     }
     datum$subsetPercent <- round(100*datum$subsetTotal/datum$total, 2)
   }
+
   
   if (cellCycle == T){
     datum$sPhase <- NA
