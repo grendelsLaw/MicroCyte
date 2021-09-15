@@ -52,7 +52,9 @@ explore <- function(fileName = "data/experiment.csv",
   
   # We read the schema to get metadata so we don't have to get it later
   schema <- read.csv(scheme)
+  # store the meta names
   metaNames <- names(schema)[6:(length(names(schema))-1)]
+  # Add the metadata to the final dataset row by row
   for (i in metaNames){
     datum[i] <- "Holder"
     for(j in 1:nrow(datum)){
@@ -61,6 +63,7 @@ explore <- function(fileName = "data/experiment.csv",
     }
   }
   
+  # We create another id that is sum of all the metadata so we can pull total data later
   if (categories == T & catNum > 0){
     for (noi in names(datum)[2:length(names(datum))]){
       if (!exists("check")){
@@ -72,7 +75,7 @@ explore <- function(fileName = "data/experiment.csv",
     datum$totalName <- check
   }
   
-  #This pulls the category data per population
+  #This pulls the category data per population and adds the population's unique variable for that category
   if (categories == T & catNum > 0){
     for (b in catTab$catName){
       datum[b] <- "Holder"
@@ -83,9 +86,11 @@ explore <- function(fileName = "data/experiment.csv",
     }
   }
   
+  #Now we pull the total values for each
   datum$total <- 0
   for (totalSet in unique(datum$name_id)){
     datum[datum$name_id == totalSet,]$total <- nrow(dFrame[dFrame["placeHolder"]==totalSet,])
+    
     if (icellate != F & is.numeric(icellate)){
       source("bin/scripts/analysis/icellate.R")
       if(icellate >= nrow(dFrame[dFrame["placeHolder"]==totalSet,])){
@@ -137,9 +142,38 @@ explore <- function(fileName = "data/experiment.csv",
       datum[datum$name_id ==a,]$rS_MDI <- mean(set[set$edu == "Positive" & set$ploidy == ">4N",]$dna_norm)
     }
   }
+  
+  if (extraMetrics == T){
+    print(names(dFrame))
+    metricsNumber <- as.numeric(readline(prompt = "How many extra variables would you like to add: "))
+    metricsTab <- data.frame("metricNumber" = c(1:metricsNumber), "metricName" = "holder")
+    for (i in 1:nrow(metricsTab)){
+      metricsTab[i,]$metricName <- readline(prompt = paste0("Which metric should be added (", i, "): "))
+    }
+    for (metric in unique(metricsTab$metricName)){
+      datum[paste0("Mean_", metric)] <- NA
+      datum[paste0("SD_", metric)] <- NA
+      datum[paste0("GMean_", metric)] <- NA
+      datum[paste0("Median_", metric)] <- NA
+      for (a in unique(datum$name_id)){
+        set <- dFrame[dFrame["placeHolder"]==a,]
+        datum[datum$name_id ==a,][paste0("Mean_", metric)] <- mean(as.numeric(unlist(set[metric])))
+        datum[datum$name_id ==a,][paste0("SD_", metric)] <- sd(as.numeric(unlist(set[metric])))
+        datum[datum$name_id ==a,][paste0("GMean_", metric)] <- exp(mean(log(as.numeric(unlist(set[metric])))))
+        datum[datum$name_id ==a,][paste0("Median_", metric)] <- median(as.numeric(unlist(set[metric])))
+      }
+    }
+  }
+  
+  
   if (file.exists(saveFile)){
-    datum_total <- read.csv(saveFile)
-    datum <- rbind(datum_total, datum)
+    concatAway <- readline(prompt = "Save file with same name detected. Concatenate? (Y/n): ")
+    if(concatAway != "n"){
+      datum_total <- read.csv(saveFile)
+      datum <- rbind(datum_total, datum)
+    } else {
+      saveFile <- readline(prompt = "What should the name of the new file be: ")
+    }
   }
   write.csv(datum, file = saveFile, row.names = F)
 }
