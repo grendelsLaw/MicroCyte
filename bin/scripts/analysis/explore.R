@@ -120,6 +120,7 @@ explore <- function(fileName = "data/experiment.csv",
 
   
   if (cellCycle == T){
+    datum$MDI <- NA
     datum$sPhase <- NA
     datum$G1 <- NA
     datum$G2 <- NA
@@ -131,6 +132,7 @@ explore <- function(fileName = "data/experiment.csv",
     datum$rS_MDI <- NA
     for (a in unique(datum$name_id)){
       set <- dFrame[dFrame["placeHolder"]==a,]
+      datum[datum$name_id ==a,]$MDI <- mean(set$dna_norm)
       datum[datum$name_id ==a,]$sPhase <- 100*nrow(set[set$edu == "Positive",])/nrow(set)
       datum[datum$name_id ==a,]$G1 <- 100*nrow(set[set$edu == "Negative" & set$ploidy == "2N",])/nrow(set)
       datum[datum$name_id ==a,]$G2 <- 100*nrow(set[set$edu == "Negative" & set$ploidy == "4N",])/nrow(set)
