@@ -1,7 +1,7 @@
 library(ggpubr)
 library(viridis)
 
-colorBarIt <- function(df = cells, 
+smokeStack <- function(df = cells, 
                        normBy = "zscore",
                        setX = F,
                        setY = F,
