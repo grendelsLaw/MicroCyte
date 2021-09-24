@@ -6,8 +6,10 @@ smokeStack <- function(df = cells,
                        setX = F,
                        setY = F,
                        bins = 20,
+                       binSize = F,
                        lims = F,
-                       saveFile = "coloredBar.pdf",
+                       fixedCoord = T,
+                       saveFile = "figures/coloredBar.pdf",
                        xdim = 5,
                        ydim = 0.5,
                        viridisPallet = "inferno"){
@@ -29,6 +31,15 @@ smokeStack <- function(df = cells,
     varMat <- data.frame("varNumb" = c(1:length(setY)), "varName" = setY)
   }
   
+  if(binSize != F){
+    if (is.numeric(binSize)){
+      print(paste("Using bin size at", binSize))
+    } else{
+      print("Non-numeric bin size detected. Ignoring bin size")
+      binSize <- F
+    }
+  }
+  
   for (j in unique(varMat$varName)){
     if(xName %in% names(df) & j %in% names(df)){
       interim <- data.frame("Name" = df[,xName], "var" = df[,j])
@@ -38,9 +49,11 @@ smokeStack <- function(df = cells,
       } else if (normBy == "lq"){
         interim$var <- interim$var/quantile(interim$var)[2]
         legendName <- "% of LQ"
-      } else {
+      } else if (normBy == "mean"){
         interim$var <- 100*interim$var/mean(interim$var)
         legendName <- "% of Mean"
+      } else {
+        legendName <- "Intensity"
       }
       if(is.double(lims())){
         interim <- interim[interim$Name >= lims[1] & interim$Name <= lims[2],]
@@ -70,6 +83,21 @@ smokeStack <- function(df = cells,
     }
   }
   
+  if (binSize != F & is.numeric(binSize)){
+    for (i in unique(allData$bin)){
+      ricky <- allData[allData$bin == i,]
+      if (nrow(ricky) > binSize){
+        ricky <- ricky[sample(nrow(ricky), binSize),]
+      }
+      if(!exists("ticky")){
+        ticky <- ricky
+      } else{
+        ticky <- rbind(ticky, ricky)
+      }
+    }
+    allData <- ticky
+  }
+  
   cBin <- c(1:bins)
   cBin <- cBin[c(T, F)]
 
@@ -79,7 +107,6 @@ smokeStack <- function(df = cells,
 
   draft <- ggplot(data = allData, aes(x = bin, y = target, fill = var))+
     geom_tile()+
-    coord_fixed()+
     theme_classic2()+
     scale_fill_viridis(option = viridisPallet)+
     xlab(xName)+
@@ -87,6 +114,9 @@ smokeStack <- function(df = cells,
     guides(fill=guide_legend(title = legendName))+
     theme(legend.position = "bottom")+
     scale_x_continuous(breaks = cBin, labels = binSet)
+  if(fixedCoord==T){
+    draft  <- draft+coord_fixed()
+  }
   print(draft)
-  #ggsave(saveFile)
+  ggsave(saveFile)
 }
