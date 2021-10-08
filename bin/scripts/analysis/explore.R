@@ -145,7 +145,7 @@ explore <- function(fileName = "data/experiment.csv",
     }
   }
   
-  if (extraMetrics == T){
+  if (extraMetrics != F){
     print(names(dFrame))
     metricsNumber <- as.numeric(readline(prompt = "How many extra variables would you like to add: "))
     metricsTab <- data.frame("metricNumber" = c(1:metricsNumber), "metricName" = "holder")
