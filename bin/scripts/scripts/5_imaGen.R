@@ -21,23 +21,28 @@ joinR <- function(y, x = "dna.csv"){
     names(fraction)[1] <- "Number"
     write.csv(fraction, file = y, row.names = FALSE)
   }
-  #Default cellid is given
-  fraction$cell <- "unknown"
-  #Default distance is given
-  tagger$distance <- 0
-  fraction$NucDist <- 0
-  # The closest nucleus is calculated for each ROI
-  for (i in 1:nrow(fraction)){
-    tagger$distance <- sqrt((tagger$X-fraction$X[i])^2+(tagger$Y-fraction$Y[i])^2)
-    closest <- min(tagger$distance)
-    fraction$NucDist[i] <- closest
-    fraction$cell[i] <- unique(subset(tagger, distance == closest)$Number)
-    #If two or more nuclei are picked, it lets you know
-    if (length(closest) > 1){
-      print("PING! More than one nucleus at minimum distance. Something is wrong (probably)")
+  # Now we skip fractions with empty lists
+  if(nrow(fraction) > 0){
+    #Default cellid is given
+    fraction$cell <- "unknown"
+    #Default distance is given
+    tagger$distance <- 0
+    fraction$NucDist <- 0
+    # The closest nucleus is calculated for each ROI
+    for (i in 1:nrow(fraction)){
+      tagger$distance <- sqrt((tagger$X-fraction$X[i])^2+(tagger$Y-fraction$Y[i])^2)
+      closest <- min(tagger$distance)
+      fraction$NucDist[i] <- closest
+      fraction$cell[i] <- unique(subset(tagger, distance == closest)$Number)
+      #If two or more nuclei are picked, it lets you know
+      if (length(closest) > 1){
+        print("PING! More than one nucleus at minimum distance. Something is wrong (probably)")
+      }
     }
+    write.csv(fraction, file = y, row.names = FALSE)
+  } else {
+    print(paste0("No data found for file: ", y))
   }
-  write.csv(fraction, file = y, row.names = FALSE)
 }
 
 imaGen <- function(directory="./", 
@@ -153,59 +158,60 @@ imaGen <- function(directory="./",
       # The ROI files is opened
       if (!grepl("_all.csv", i)){
         fraction <- read.csv(i)
-
-#      write.csv(fraction, file = i, row.names = F)
-    #Each nucleus number is analyzed for ROI's designated to it
-       for (j in 1:nrow(interim)){
-          interim$ROI_Num[j] <- 0
-          interim$ROI_Area[j] <- 0
-          interim$ROI_Mean[j] <- 0
-          interim$ROI_Stdev[j] <- 0
-          interim$ROI_Mode[j] <- 0
-          interim$ROI_Perimeter[j] <- 0
-          interim$ROI_IntDen[j] <- 0
-          interim$ROI_IntTotal[j] <- 0
-          interim$ROI_NucDist[j] <- 0
-          if(interim$Number[j] %in% unique(fraction$cell)){
-          # The ROIs that are assigned to a particular nucleus number are subsetted
-            hitz <- subset(fraction, cell == interim$Number[j])
-        
-          # Individual ROI nuclear distances are calculated
-          #The number of ROIS assigned to that cell
-            interim$ROI_Num[j] <- nrow(hitz)
-          
-          #The average average of all the ROIs
-            interim$ROI_Area[j] <- mean(hitz$Area)*100
-          
-          #The average Mean intensity of all the ROIs
-            interim$ROI_Mean[j] <- mean(hitz$Mean)
-          
-          #The average standard deviation of all the ROIs
-            interim$ROI_Stdev[j] <- mean(hitz$StdDev)
-          
-          #The average mode of pixel intensities of all the ROIs
-            interim$ROI_Mode[j] <- mean(hitz$Mode)
-        
-          #The average perimeter of all the ROIs
-            interim$ROI_Perimeter[j] <- mean(hitz$Perim.)
-        
-          #The average integrated mean/density of the ROIs
-            interim$ROI_IntDen[j] <- mean(hitz$RawIntDen)
-        
-          #The total of the integrated means/densities of all the ROIs
-            interim$ROI_IntTotal[j] <- sum(hitz$RawIntDen)
-        
-          #The average distance from the nucleus of all the ROIs
-            interim$ROI_NucDist[j] <- mean(hitz$NucDist)
-          } 
+        if (nrow(fraction > 0)){
+          #      write.csv(fraction, file = i, row.names = F)
+          #Each nucleus number is analyzed for ROI's designated to it
+          for (j in 1:nrow(interim)){
+            interim$ROI_Num[j] <- 0
+            interim$ROI_Area[j] <- 0
+            interim$ROI_Mean[j] <- 0
+            interim$ROI_Stdev[j] <- 0
+            interim$ROI_Mode[j] <- 0
+            interim$ROI_Perimeter[j] <- 0
+            interim$ROI_IntDen[j] <- 0
+            interim$ROI_IntTotal[j] <- 0
+            interim$ROI_NucDist[j] <- 0
+            if(interim$Number[j] %in% unique(fraction$cell)){
+              # The ROIs that are assigned to a particular nucleus number are subsetted
+              hitz <- subset(fraction, cell == interim$Number[j])
+              
+              # Individual ROI nuclear distances are calculated
+              #The number of ROIS assigned to that cell
+              interim$ROI_Num[j] <- nrow(hitz)
+              
+              #The average average of all the ROIs
+              interim$ROI_Area[j] <- mean(hitz$Area)*100
+              
+              #The average Mean intensity of all the ROIs
+              interim$ROI_Mean[j] <- mean(hitz$Mean)
+              
+              #The average standard deviation of all the ROIs
+              interim$ROI_Stdev[j] <- mean(hitz$StdDev)
+              
+              #The average mode of pixel intensities of all the ROIs
+              interim$ROI_Mode[j] <- mean(hitz$Mode)
+              
+              #The average perimeter of all the ROIs
+              interim$ROI_Perimeter[j] <- mean(hitz$Perim.)
+              
+              #The average integrated mean/density of the ROIs
+              interim$ROI_IntDen[j] <- mean(hitz$RawIntDen)
+              
+              #The total of the integrated means/densities of all the ROIs
+              interim$ROI_IntTotal[j] <- sum(hitz$RawIntDen)
+              
+              #The average distance from the nucleus of all the ROIs
+              interim$ROI_NucDist[j] <- mean(hitz$NucDist)
+            } 
+          }
+          # A target tag is added for later identification
+          names(interim) <- paste0(names(interim), "_", colo)
+          # The new variables are added to their cell ID
+          cells <- cbind(cells, interim[,(ncol(cells)+1):ncol(interim)])
         }
-      # A target tag is added for later identification
-        names(interim) <- paste0(names(interim), "_", colo)
-      # The new variables are added to their cell ID
-        cells <- cbind(cells, interim[,(ncol(cells)+1):ncol(interim)])
       }
     }
-    # Now begins generating a final ROI file for funnies
+    # Now begins generating a final ROI file for funnsies
     interim <- read.csv(filez[1])
     colo <- substr(filez[1], 1, nchar(i)-2)
     interim$roi <- colo
@@ -214,19 +220,21 @@ imaGen <- function(directory="./",
       for (i in filez[2:length(filez)]){
         if(!grepl("_all.csv", i)){
           x <- read.csv(i)
-          colo <- substr(i, 1, nchar(i)-4)
-          for (j in names(interim)){
-            if (!j %in% names(x)){
-              x[j] <- "NA"
+          if (nrow(x > 0)){
+            colo <- substr(i, 1, nchar(i)-4)
+            for (j in names(interim)){
+              if (!j %in% names(x)){
+                x[j] <- "NA"
+              }
             }
-          }
-          for (j in names(x)){
-            if (!j %in% names(interim)){
-              interim[j] <- "NA"
+            for (j in names(x)){
+              if (!j %in% names(interim)){
+                interim[j] <- "NA"
+              }
             }
+            x$roi <- colo
+            interim <- rbind(interim, x)
           }
-          x$roi <- colo
-          interim <- rbind(interim, x)
         }
       }
     }
@@ -439,7 +447,6 @@ for (xL in xList){
     yList <- list.files()
     for(yL in yList){
       if(!grepl("_all.csv", yL) & yL != "Thumbs.db"){
-        print(paste0("Combining data from image ", yL))
         setwd(paste0(yL, "/PNGS/"))
         checkList <- list.files()
         if("Perinuclear" %in% checkList){
@@ -448,8 +455,13 @@ for (xL in xList){
         if("WholeCell" %in% checkList){
           wcGo <- TRUE
         }
-        imaGen(peri = periGo,
-               wc = wcGo)
+        if (length(list.files(path = "Nuclear/", pattern = "NUC_all.csv")) == 0){
+          imaGen(peri = periGo,
+                 wc = wcGo)
+          print(paste0("Combining data from image ", yL))
+        } else {
+          print(paste0("Combined data already detected for: ", yL))
+        }
         setwd("../../")
       }
     }
