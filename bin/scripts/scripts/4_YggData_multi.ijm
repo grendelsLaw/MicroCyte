@@ -1,7 +1,8 @@
 //YggData is the ThompsonLab ImageJ macro for single cell analysis of IFA images
 
-nucleusSize="30-2000";
+nucleusSize="30-300";
 dnaMinThreshold=30;
+circularity=0.75
 
 runPeri=true;
 enlargeFactor="3";
@@ -64,7 +65,7 @@ for (i=0; i < pList.length; i++){
 // If you are running a high magnification (>10x) DNA image, it is recommended that you comment this out to avoid nuclear image fragementation
 			run("Watershed");
 //The ROIs are generated
-			run("Analyze Particles...", "size="+nucleusSize+" add include exclude");
+			run("Analyze Particles...", "size="+nucleusSize+" add include exclude circularity="+circularity+"-1.00");
 //The image is closed
 			close();			
 			
