@@ -22,7 +22,7 @@ abra <- function(){
     imageName <- substr(a, 0, nchar(a)-4)
     imageItem <- image_read(a)
     image_write(imageItem, path = paste0("PNGS/", imageName, ".png"), format = "png")
-    image_write(imageItem, path = paste0(imageName, ".tif"), format = "tif")
+    #image_write(imageItem, path = paste0(imageName, ".tif"), format = "tif")
   }
 }
 
