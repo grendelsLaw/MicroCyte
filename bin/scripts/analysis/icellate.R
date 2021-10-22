@@ -23,10 +23,9 @@ icellate <- function(targetCells,
     dir.create("icellates")
   }
   setwd("icellates")
-  # Now, since each set of images are likely to represent *some* kind of cluster, we'll create of cluster folder thatn can be added to
+  # Now, since each set of images are likely to represent *some* kind of cluster, we'll create of cluster folder that can be added to
   if(!folderName %in% list.files()){
     dir.create(folderName)
-    
   }
   setwd(folderName)
   
