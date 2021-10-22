@@ -1,6 +1,6 @@
 library(ggplot2)
 library(viridis)
-#source("bin/scripts/analysis/icellate.R")
+source("bin/scripts/analysis/icellate.R")
 
 ergodic_slicing <- function(df = cells,
                             subset_df = cells[cells$edu == "Positive",],
@@ -9,11 +9,26 @@ ergodic_slicing <- function(df = cells,
                             rate = 24,
                             rate_description = "doubling time (hours)",
                             icell = F,
-                            icell_number = 3){
+                            icell_number = 3,
+                            hist_save = "figures/ergodicHist.pdf",
+                            ergo_save = "figures/ergodicRates.pdf",
+                            ergo_file_save = "data/ergo.csv"){
   list_df <- split(subset_df, cut(unlist(subset_df[variable]), breaks = bins))
   if(icell == T){
+    tick <- 1
     for (bin_set in list_df){
-      icellate(bin_set)
+      if(nrow(bin_set) < icell_number){
+        johnny <- nrow(bin_set)
+      } else {
+        johnny <- icell_number
+      }
+      icellate(targetCells = bin_set, 
+               folderName = paste0("bin ", tick), 
+               verifySize = F, 
+               randomize = T, 
+               samplingNumber = johnny,
+               lineAnalyses = F)
+      tick <- tick+1
     }
   }
   histo_draft <- ggplot(data = subset_df, aes(x = unlist(subset_df[variable])))+
@@ -21,6 +36,8 @@ ergodic_slicing <- function(df = cells,
     xlab(variable)+
     theme_classic()
   print(histo_draft)
+  ggsave(hist_save)
+  
   ergo_df <- data.frame("bin_id" = c(1:bins),
                         "bin_rate" = 0,
                         "volume" = 0,
@@ -44,4 +61,6 @@ ergodic_slicing <- function(df = cells,
     scale_fill_viridis()+
     theme(legend.position = "top")
   print(ergo_draft)
+  ggsave(ergo_save)
+  write.csv(ergo_df, file = ergo_file_save, row.names = F)
 }
