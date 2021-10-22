@@ -318,6 +318,7 @@ while (TRUE) {
     source("bin/scripts/analysis/cap_ifa.R")
     source("bin/scripts/analysis/icellate.R")
     source("bin/scripts/analysis/smokeStack.R")
+    source("bin/scripts/analysis/ergodic_slice.R")
     print("Good luck with your analysis!")
     break
   } else {
