@@ -1,15 +1,20 @@
 library(ggplot2)
 library(viridis)
 source("bin/scripts/analysis/icellate.R")
+source("bin/scripts/analysis/SirMixaPlot.R")
 
 ergodic_slicing <- function(df = cells,
                             subset_df = cells[cells$edu == "Positive",],
                             variable = "dna_norm",
                             bins = 10,
+                            bin_add_name = "", 
                             rate = 24,
                             rate_description = "doubling time (hours)",
                             icell = F,
                             icell_number = 3,
+                            icell_fusion = F,
+                            pca = F,
+                            pca_groups = F,
                             hist_save = "figures/ergodicHist.pdf",
                             ergo_save = "figures/ergodicRates.pdf",
                             ergo_file_save = "data/ergo.csv"){
@@ -23,8 +28,9 @@ ergodic_slicing <- function(df = cells,
         johnny <- icell_number
       }
       icellate(targetCells = bin_set, 
-               folderName = paste0("bin ", tick), 
+               folderName = paste0(bin_add_name, "bin ", tick), 
                verifySize = F, 
+               fuse = icell_fusion, 
                randomize = T, 
                samplingNumber = johnny,
                lineAnalyses = F)
@@ -44,6 +50,14 @@ ergodic_slicing <- function(df = cells,
                         "mean_stat" = 0)
   tick <- 1
   for (bin_set in list_df){
+    if(pca == T){
+      if(!"pcas" %in% list.files(path = "figures/")){
+        dir.create("figures/pcas")
+      }
+      runPCA(df = bin_set, 
+             groupz = pca_groups, 
+             saveFile = paste0("figures/pcas/", bin_add_name, "bin_", tick, ".png"))
+    }
     ergo_df[tick,]$volume <- nrow(bin_set)
     ergo_df[tick,]$bin_rate <- rate*((2-(nrow(subset_df)/nrow(df)))/(nrow(bin_set)/nrow(subset_df)))
     ergo_df[tick,]$mean_stat <- median(unlist(bin_set[variable]))
@@ -51,11 +65,13 @@ ergodic_slicing <- function(df = cells,
   }
   ergo_df$bin_rate <- ergo_df$bin_rate/mean(ergo_df[!is.infinite(ergo_df$bin_rate),]$bin_rate)
   cbins <- c(1:bins)
-  ergo_df[is.na(ergo_df$mean_stat),]$mean_stat <- ""
+  if(T %in% is.na(ergo_df$mean_stat)){
+    ergo_df[is.na(ergo_df$mean_stat),]$mean_stat <- ""
+  }
   ergo_draft <- ggplot(data = ergo_df[!is.infinite(ergo_df$bin_rate),], aes(x=bin_id, y=bin_rate, fill=volume))+
     geom_bar(stat = "identity", position = position_dodge(0.7))+
     ylab("Mean bin progression rate (a.u. per hour)")+
-    scale_x_continuous(breaks = cbins, labels = ergo_df$mean_stat)+
+  #  scale_x_continuous(breaks = cbins, labels = ergo_df$mean_stat)+
     xlab(paste0("Median size of ", variable))+
     theme_classic()+
     scale_fill_viridis()+
