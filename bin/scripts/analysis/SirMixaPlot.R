@@ -633,72 +633,65 @@ reMap <- function(df = cells,
 
 #-----------------------------------------------------------------
 # Beta run of PCA function
-runPCA <- function(df=cells, 
+runPCA <- function(df=cells,
+                   saveFile = "figures/pcaPlot.png",
                    choicez = c(1,2), 
                    subz = F, 
                    groupz = F, 
                    circz=F,
                    axe=F,
                    elly=F){  
-  
-  # get rid of non-numerics
-  num <- unlist(lapply(df, is.numeric))
-  cellist <- df[ , num]
-  
-  # Get rid of columns with no variance
-  x <- foo(cellist)
-  cellist <- cellist[,-x]
+  cellist <- df
   
   # Get rid of NAs and Infs
   cellist[is.na(cellist)] <- 0
   cellist[cellist == Inf] <- 0
   cellist[cellist == -Inf] <- 0 
   
+  if (groupz ==  T){
+    elly <- T
+    print(names(cellist))
+    grope <- readline(prompt = "What should the PCA be grouped by from the 'cellist' dataframe: ")
+    groupList <- unlist(df[grope])
+  }
+  
+  # get rid of non-numerics
+  num <- unlist(lapply(df, is.numeric))
+  cellist <- df[ , num]
+  
   # Get only the nuclear columns & remove NA
   if (subz != F){
     cellist <- cellist[str_detect(names(cellist), subz) | str_detect(names(cellist), "Number")]
   }
   
+  # Get rid of columns with no variance
+  x <- foo(cellist)
+  cellist <- cellist[,-x]
+  
   # Make the pca object
-  cell.pca <<- prcomp(cellist, center = TRUE, scale = TRUE)
+  cell.pca <- prcomp(cellist, center = TRUE, scale = TRUE)
 
   #Report how much of the data is shown
   howManyLeft <- round((nrow(cellist)*ncol(cellist))/(nrow(df)*ncol(df))*100, digits = 1)
-  cat(paste0("Around ", howManyLeft, "% of the data is represented after trimming."))
+  cat(paste0("Approximately ", howManyLeft, "% of the data is represented after trimming."))
   cat("\n")
   
-  # Make the biplot
-  if (groupz ==  T){
-    elly <- T
-    print(names(cellist))
-    grope <- readline(prompt = "What should the PCA be grouped by from the 'cellist' dataframe: ")
-    n <- which(colnames(cellist)==grope)
-    #if (is.character(cellist[grope])){
-    #  cat("Converting group to numeric")
-    #  cellist[grope] <- as.list(cellist[grope])
-    #}
-    pp <<- ggbiplot(cell.pca,
-                    ellipse = elly, 
-                    choices = choicez, 
-                    var.axes = axe, 
-                    circle = circz, 
-                    groups = as.factor(cellist[,n]))+
-      #geom_density_2d(aes(color = cellist[grope]))+
-      theme_classic2()
-  } else {
-    pp <<- ggbiplot(cell.pca, 
-                    ellipse = elly, 
-                    choices = choicez, 
-                    var.axes = axe, 
-                    circle = circz)+
-    geom_density_2d()+
-    theme_classic2()
-  }
-  if (elly == F){
-    print(pp)
+  pp <<- ggbiplot(cell.pca, 
+                  ellipse = elly, 
+                  choices = choicez, 
+                  var.axes = axe, 
+                  circle = circz,
+                  alpha = 0.5, shape = 16)+
+  geom_density_2d()+
+  theme_classic2()
+  
+  if (groupz == T){
+    print(pp+
+            geom_point(aes(color = groupList, shape = groupList), size = 3, alpha = 0.5))
   } else {
     print(pp)
   }
+  ggsave(saveFile, dpi = 300, height = 4, width = 4)
 }
 
 foo <- function(dat) {
