@@ -7,6 +7,7 @@ icellate <- function(targetCells,
                      folderName = "singleCells",
                      dMultiplier = 0.3,
                      verifySize = T,
+                     fuse = F,
                      verifyImage = "overlay.png",
                      randomize = F,
                      samplingNumber = 5,
@@ -17,15 +18,17 @@ icellate <- function(targetCells,
                      randomSamplerDenom = 10){
   #Set a parameter to allow size verification
   sizeVerified <- F
+  fuseNames <- c()
   
   # First, we'll create the folder in case it doesn't exist, then go to it
   if(!"icellates" %in% list.files()){
     dir.create("icellates")
   }
   setwd("icellates")
-  # Now, since each set of images are likely to represent *some* kind of cluster, we'll create of cluster folder that can be added to
+  # Now, since each set of images are likely to represent *some* kind of cluster, we'll create of cluster folder thatn can be added to
   if(!folderName %in% list.files()){
     dir.create(folderName)
+    
   }
   setwd(folderName)
   
@@ -96,9 +99,13 @@ icellate <- function(targetCells,
           }
         }
       }
+      
+      # For each image...
       for (i in list.files()){
-        interim <- load.image(i)
-        interim <- as.data.frame(interim)
+        # we load the image..
+        interim_i <- load.image(i)
+        # And convert it to a dataframe.
+        interim <- as.data.frame(interim_i)
 
         #First, lets figure out how big the area of the picture needs to be based on the imageType parameter
         areaName <- names(cells)[grepl("^Area_NUC", names(targetCell))]
@@ -132,6 +139,82 @@ icellate <- function(targetCells,
         newPlot <- suppressWarnings(as.cimg(interim))
         newPlot <- cimg2magick(newPlot, rotate = T)
         image_write(newPlot, path = i, format = "png")
+        
+        # If class averaging is called via the 'fuse' parameter AND the image is a square...
+        if (fuse == T & max(interim$x) == max(interim$y)){
+          # so we can call all the averaged images later, we'll make a list of each unique image
+          if(!strsplit(i, ".png")[[1]][1] %in% fuseNames){
+            fuseNames <- append(fuseNames, strsplit(i, ".png")[[1]][1])
+          }
+          # a new parameter is generated and assigned as the dataframe unless the variable already exists...
+          if(!exists(paste0(strsplit(i, ".png")[[1]][1], "_fused"))){
+            bidet <- interim
+            bidet$number <- 1
+            assign(paste0(strsplit(i, ".png")[[1]][1], "_fused"), bidet)
+            assign(paste0(strsplit(i, ".png")[[1]][1], "_xOri"), newXPos)
+            assign(paste0(strsplit(i, ".png")[[1]][1], "_yOri"), newYPos)
+          } else {
+            # in which case an interim dataframe is generated and the average is called in a declarable thing
+            fuse_old <- get(paste0(strsplit(i, ".png")[[1]][1], "_fused"))
+            # The number is increased
+            fuse_old$number <- fuse_old$number+1
+            fuse_interim <- interim
+            
+            #If the images are the same size, then the values are summed
+            if(max(fuse_interim$x)==max(get(paste0(strsplit(i, ".png")[[1]][1], "_fused"))$x)){
+              fuse_old$value <- fuse_old$value+fuse_interim$value
+              assign(paste0(strsplit(i, ".png")[[1]][1], "_fused"), fuse_old)
+              
+            } else{
+              # Now we use the midpoints XPos and YPos to align the dataframes
+
+              if(nrow(fuse_old) > nrow(fuse_interim)){
+                xShift <- get(paste0(strsplit(i, ".png")[[1]][1], "_xOri"))-newXPos
+                yShift <- get(paste0(strsplit(i, ".png")[[1]][1], "_yOri"))-newYPos
+                fuse_interim$x <- fuse_interim$x+xShift
+                fuse_interim$y <- fuse_interim$y+yShift
+              } else {
+                xShift <- newXPos-get(paste0(strsplit(i, ".png")[[1]][1], "_xOri"))
+                yShift <- newYPos-get(paste0(strsplit(i, ".png")[[1]][1], "_yOri"))
+                fuse_old$x <- fuse_old$x+xShift
+                fuse_old$y <- fuse_old$y+yShift
+                assign(paste0(strsplit(i, ".png")[[1]][1], "_xOri"), newXPos)
+                assign(paste0(strsplit(i, ".png")[[1]][1], "_yOri"), newYPos)
+              }
+              
+              if(nrow(fuse_old[fuse_old$x == 0 | fuse_old$y == 0,])>=1){
+                print(paste0("A total of", nrow(fuse_old[fuse_old$x == 0 | fuse_old$y == 0,]), "zero(s) was detected in the old"))
+                fuse_old <- fuse_old[fuse_old$x > 0 & fuse_old$y > 0,]
+              }
+              if(nrow(fuse_interim[fuse_interim$x == 0 | fuse_interim$y == 0,])>=1){
+                print(paste0("A total of ", nrow(fuse_interim[fuse_interim$x == 0 | fuse_interim$y == 0,]), "zero(s) was detected in the interim"))
+                fuse_interim <- fuse_interim[fuse_interim$x > 0 & fuse_interim$y > 0,]
+              }
+              row.names(fuse_old) <- paste0(fuse_old$x, "_", fuse_old$y, "_", fuse_old$cc)
+              row.names(fuse_interim) <- paste0(fuse_interim$x, "_", fuse_interim$y, "_", fuse_interim$cc)
+              
+              fuse_new <- merge(fuse_old[,1:4], fuse_interim, by = 0, all = T)
+              fuse_new[is.na(fuse_new)] <- 0
+              the_numbers <- as.numeric(unique(fuse_old$number))
+              
+              if(nrow(fuse_old) > nrow(fuse_interim)){
+                fuse_export <- data.frame("x" = fuse_new$x.x,
+                                          "y" = fuse_new$y.x,
+                                          "cc" = fuse_new$cc.x,
+                                          "value" = fuse_new$value.y+fuse_new$value.x,
+                                          "number" = the_numbers)
+              }else {
+                fuse_export <- data.frame("x" = fuse_new$x.y,
+                                          "y" = fuse_new$y.y,
+                                          "cc" = fuse_new$cc.y,
+                                          "value" = fuse_new$value.y+fuse_new$value.x,
+                                          "number" = the_numbers)
+              }
+              #Now we create the new, averaged image
+              assign(paste0(strsplit(i, ".png")[[1]][1], "_fused"), fuse_export)
+            }
+          }
+        }
       }
       
       # Now to run the line analyses if they're supposed to be
@@ -147,6 +230,24 @@ icellate <- function(targetCells,
       }
       setwd("../")
     }
+  }
+  if(fuse==T){
+    fuse_data <- data.frame("image" = fuseNames, "number" = 0)
+    #this is where you call the assigned things and save them as images
+    for (fused in fuseNames){
+      # for each image name that was found, we get the image
+      fused_image <- get(paste0(fused, "_fused"))
+      #The intensities get rounded and then we drop the image numbers after saving that data
+      fused_image$value <- fused_image$value/fused_image$number
+      fuse_data[fuse_data$image == fused,]$number <- max(fused_image$number)
+      fused_image <- fused_image[,1:4]
+      # The averaged image is then saved as a png
+      fusedPlot <- suppressWarnings(as.cimg(fused_image))
+      fusedPlot <- cimg2magick(fusedPlot, rotate = T)
+      image_write(fusedPlot, path = paste0(fused, ".png"), format = "png")
+    }
+    # The number of images used is then saved
+    write.csv(fuse_data, "ClassAveragingMetrics.csv", row.names=F)
   }
   setwd("../../")
 }
