@@ -22,21 +22,24 @@ ergodic_slicing <- function(df = cells,
   if(icell == T){
     tick <- 1
     for (bin_set in list_df){
-      if(nrow(bin_set) < icell_number){
-        johnny <- nrow(bin_set)
-      } else {
-        johnny <- icell_number
+      if (nrow(bin_set) > 0){
+        if(nrow(bin_set) < icell_number){
+          johnny <- nrow(bin_set)
+        } else {
+          johnny <- icell_number
+        }
+        icellate(targetCells = bin_set, 
+                 folderName = paste0(bin_add_name, "bin ", tick), 
+                 verifySize = F, 
+                 fuse = icell_fusion, 
+                 randomize = T, 
+                 samplingNumber = johnny,
+                 lineAnalyses = F)
+        tick <- tick+1
       }
-      icellate(targetCells = bin_set, 
-               folderName = paste0(bin_add_name, "bin ", tick), 
-               verifySize = F, 
-               fuse = icell_fusion, 
-               randomize = T, 
-               samplingNumber = johnny,
-               lineAnalyses = F)
-      tick <- tick+1
     }
   }
+  
   histo_draft <- ggplot(data = subset_df, aes(x = unlist(subset_df[variable])))+
     geom_density()+
     xlab(variable)+
