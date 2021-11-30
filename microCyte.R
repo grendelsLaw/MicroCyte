@@ -312,13 +312,15 @@ while (TRUE) {
     source("bin/scripts/scripts/3_reName.R")
     reset_names()
   } else if (option == "9"){
+    scriptList <- list.files("bin/scripts/analysis/", pattern = ".R")
     print("Sourcing the analysis scripts...")
-    source("bin/scripts/analysis/SirMixaPlot.R")
-    source("bin/scripts/analysis/explore.R")
-    source("bin/scripts/analysis/cap_ifa.R")
-    source("bin/scripts/analysis/icellate.R")
-    source("bin/scripts/analysis/smokeStack.R")
-    source("bin/scripts/analysis/ergodic_slice.R")
+    cat("\n")
+    for(scriptin in scriptList){
+      cat(paste0("Sourcing script: ", scriptin))
+      cat("\n")
+      source(paste0("bin/scripts/analysis/", scriptin))
+    }
+    cat("\n")
     print("Good luck with your analysis!")
     break
   } else {
