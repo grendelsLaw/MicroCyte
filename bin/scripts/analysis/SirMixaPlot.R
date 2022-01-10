@@ -632,65 +632,89 @@ reMap <- function(df = cells,
 }
 
 #-----------------------------------------------------------------
-# Beta run of PCA function
-runPCA <- function(df=cells,
+# Runs either a PCA of t-SNE
+runCA <- function(df=cells,
+                   plotType = "tsne",
                    saveFile = "figures/pcaPlot.png",
-                   choicez = c(1,2), 
                    subz = F, 
-                   groupz = F, 
-                   circz=F,
-                   axe=F,
-                   elly=F){  
+                   groupz = T){  
   cellist <- df
   
   # Get rid of NAs and Infs
   cellist[is.na(cellist)] <- 0
   cellist[cellist == Inf] <- 0
   cellist[cellist == -Inf] <- 0 
+  cellist <- unique(cellist)
   
   if (groupz ==  T){
     elly <- T
     print(names(cellist))
-    grope <- readline(prompt = "What should the PCA be grouped by from the 'cellist' dataframe: ")
+    grope <- readline(prompt = paste0("What should the ", plotType, " be grouped by from the 'cellist' dataframe: "))
     groupList <- unlist(df[grope])
   }
-  
   # get rid of non-numerics
   num <- unlist(lapply(df, is.numeric))
-  cellist <- df[ , num]
+  cellist_nums <- df[ , num]
   
   # Get only the nuclear columns & remove NA
   if (subz != F){
+    cellist_nums <- cellist_nums[str_detect(names(cellist_nums), subz) | str_detect(names(cellist_nums), "Number")]
     cellist <- cellist[str_detect(names(cellist), subz) | str_detect(names(cellist), "Number")]
   }
   
-  # Get rid of columns with no variance
-  x <- foo(cellist)
-  cellist <- cellist[,-x]
+  #Get rid of non-unique rows
+  cellist <- unique(cellist)
+  cellist_nums <- unique(cellist_nums)
+  
+  if (plotType != "pca" & plotType != "tsne"){
+    plotType <- readline(prompt = "Are you trying to make a tsne or pca plot: ")
+  }
   
   # Make the pca object
-  cell.pca <- prcomp(cellist, center = TRUE, scale = TRUE)
+  if(plotType == "pca"){
+    # Get rid of columns with no variance
+    x <- foo(cellist_nums)
+    cellist_nums <- cellist_nums[,-x]
+
+    cell.pca <- prcomp(cellist_nums, center = TRUE, scale = TRUE)
+    percentage <- round(cell.pca$sdev / sum(cell.pca$sdev) * 100, 2)
+
+    if (groupz == T){
+      pca_out <- data.frame(x=cell.pca$x[,1], y = cell.pca$x[,2], groupBy = cellist[,grope])
+      pp <<- ggplot(data = pca_out, aes(x = x, y = y))+
+        geom_point(aes(color = groupBy), size = 3, alpha = 0.5)+
+        geom_density_2d(aes(color = groupBy))+
+        xlab(paste0("PC1 (", percentage[1], " %)"))+
+        ylab(paste0("PC2 (", percentage[2], " %)"))+
+        theme_classic2()
+    } else {
+      pca_out <- data.frame(x=cell.pca$x[,1], y = cell.pca$x[,2])
+      pp <<- ggplot(data = pca_out, aes(x = x, y = y))+
+        geom_point(size = 3, alpha = 0.5)+
+        geom_density_2d()+
+        xlab(paste0("PC1 (", percentage[1], " %)"))+
+        ylab(paste0("PC2 (", percentage[2], " %)"))+
+        theme_classic2()
+    }
+  } else{
+    cellist_m <- as.matrix(cellist_nums)
+    tsne_out <<- Rtsne::Rtsne(cellist_m)
+    if (groupz == T){
+      tsne_plot <- data.frame(x = tsne_out$Y[,1], y = tsne_out$Y[,2], groupBy = cellist[,grope])
+      pp <<- ggplot(data = tsne_plot, aes(x=x, y=y))+geom_point(aes(color = groupBy), size = 3, alpha = 0.5)+geom_density_2d(aes(color = groupBy))+theme_classic2()
+    } else{
+      tsne_plot <- data.frame(x = tsne_out$Y[,1], y = tsne_out$Y[,2])
+      pp <<- ggplot(data = tsne_plot, aes(x=x, y=y))+geom_point(size = 3, alpha = 0.5)+geom_density_2d()+theme_classic2()
+    }
+  }
+  print(pp)
 
   #Report how much of the data is shown
-  howManyLeft <- round((nrow(cellist)*ncol(cellist))/(nrow(df)*ncol(df))*100, digits = 1)
+  howManyLeft <- round((nrow(cellist_nums)*ncol(cellist_nums))/(nrow(df)*ncol(df))*100, digits = 1)
   cat(paste0("Approximately ", howManyLeft, "% of the data is represented after trimming."))
   cat("\n")
   
-  pp <<- ggbiplot(cell.pca, 
-                  ellipse = elly, 
-                  choices = choicez, 
-                  var.axes = axe, 
-                  circle = circz,
-                  alpha = 0.5, shape = 16)+
-  geom_density_2d()+
-  theme_classic2()
   
-  if (groupz == T){
-    print(pp+
-            geom_point(aes(color = groupList, shape = groupList), size = 3, alpha = 0.5))
-  } else {
-    print(pp)
-  }
   ggsave(saveFile, dpi = 300, height = 4, width = 4)
 }
 
