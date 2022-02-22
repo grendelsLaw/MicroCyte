@@ -644,8 +644,7 @@ runCA <- function(df=cells,
   cellist[is.na(cellist)] <- 0
   cellist[cellist == Inf] <- 0
   cellist[cellist == -Inf] <- 0 
-  cellist <- unique(cellist)
-  
+
   if (groupz ==  T){
     elly <- T
     print(names(cellist))
@@ -675,7 +674,8 @@ runCA <- function(df=cells,
     # Get rid of columns with no variance
     x <- foo(cellist_nums)
     cellist_nums <- cellist_nums[,-x]
-
+    cellist_nums[is.na(cellist_nums)] <- 0
+    
     cell.pca <- prcomp(cellist_nums, center = TRUE, scale = TRUE)
     percentage <- round(cell.pca$sdev / sum(cell.pca$sdev) * 100, 2)
 
@@ -698,7 +698,8 @@ runCA <- function(df=cells,
     }
   } else{
     cellist_m <- as.matrix(cellist_nums)
-    tsne_out <<- Rtsne::Rtsne(cellist_m)
+    cellist_m[is.na(cellist_m)] <- 0
+    tsne_out <- Rtsne::Rtsne(cellist_m, perplexity = 100)
     if (groupz == T){
       tsne_plot <- data.frame(x = tsne_out$Y[,1], y = tsne_out$Y[,2], groupBy = cellist[,grope])
       pp <<- ggplot(data = tsne_plot, aes(x=x, y=y))+geom_point(aes(color = groupBy), size = 3, alpha = 0.5)+geom_density_2d(aes(color = groupBy))+theme_classic2()
