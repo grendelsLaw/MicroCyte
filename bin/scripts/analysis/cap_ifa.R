@@ -157,11 +157,23 @@ foci_compact <- function(fileName = "assigned.csv",
     }
     cells_new[cells_new["focus"] == a,]["focal_size"] <- c
   }
+  #Find the right name
+  uni_x_name <- names(cells_new)[grepl("X_NUC", names(cells_new))][1]
+  uni_y_name <- names(cells_new)[grepl("Y_NUC", names(cells_new))][1]
+  
   cells_new$core_prob <- cells_new$NNs/cells_new$focal_size
   cells_new$core_prob_norm <- 0
+  cells_new$distance_to_center <- NA
+  cells_new$core_dist_norm <- 0
+  cells_new$top_core_distance <- F
   cells_new[is.na(cells_new$core_prob),]$core_prob <- 0
   for (a in unique(cells_new$focus)){
+    #Find the median x and y values and calculate distance
+    uni_x <- exp(mean(log(cells_new[cells_new$focus == a,][,uni_x_name])))
+    uni_y <- exp(mean(log(cells_new[cells_new$focus == a,][,uni_y_name])))
+    cells_new[cells_new$focus == a,]$distance_to_center <- sqrt((cells_new[cells_new$focus == a,][,uni_x_name]-uni_x)^2+(cells_new[cells_new$focus == a,][,uni_y_name]-uni_y)^2)
     cells_new[cells_new$focus == a,]$core_prob_norm <- 100*cells_new[cells_new$focus == a,]$core_prob/sum(cells_new[cells_new$focus == a,]$core_prob)
+    cells_new[cells_new$focus == a,]$top_core_distance <- cells_new[cells_new$focus == a,]$distance_to_center == min(cells_new[cells_new$focus == a,]$distance_to_center)
   }
   write.csv(cells_new, paste0("data/capIFA_",strsplit(fileName, "/")[[1]][2]), row.names = F)
   cat("Foci compacted.\n")
