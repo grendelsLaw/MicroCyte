@@ -57,8 +57,8 @@ alakazam <- function(df = "QC/sampledPixels.csv",
                      color="green",
                      sampleNumber=10000,
                      corrCut = 1,
-                     overlapper = "CH2",
-                     overlappee = "CH1",
+                     overlapper = "CH1_3",
+                     overlappee = "CH1_4",
                      amplification = 2,
                      breck = 10,
                      pool = 4){
@@ -182,7 +182,7 @@ for (ab in dirz){
          abra()
          if(runType == "auto"){
            kadabra()
-           alakazam(overlapper = scheme[2], overlappee = scheme[1])
+           alakazam()
          } else if (runType == "manual"){
            kadabra()
            print(scheme)
