@@ -7,12 +7,17 @@ smokeStack <- function(df = cells,
                        setY = F,
                        bins = 20,
                        binSize = F,
+                       minBinNumber = 100,
                        lims = F,
+                       facet = F,
+                       facet_within =T,
                        fixedCoord = T,
-                       saveFile = "figures/coloredBar.pdf",
+                       saveFile = "figures/coloredBar.svg",
+                       saveData = F,
                        xdim = 5,
                        ydim = 0.5,
                        viridisPallet = "inferno"){
+  # Asks for a variable to bin on if one isn't given
   if (setX == F){
     print(names(df))
     xName <- readline(prompt = "Which variable should be mapped on the x-axis? ")
@@ -20,17 +25,7 @@ smokeStack <- function(df = cells,
     xName <- setX
   }
   
-  if (setY == F){
-    varNumb <- as.numeric(readline(prompt = paste0("How many variables should be mapped across ", xName, "? ")))
-    varMat <- data.frame("varNumb" = c(1:varNumb), "varName" = "HOLD")
-    
-    for (i in 1:varNumb){
-      varMat[i,2] <- readline(prompt = paste0("What is variable number ", i, "? "))
-    }
-  } else {
-    varMat <- data.frame("varNumb" = c(1:length(setY)), "varName" = setY)
-  }
-  
+  # Makes sure the number of bins is a numeric value
   if(binSize != F){
     if (is.numeric(binSize)){
       print(paste("Using bin size at", binSize))
@@ -40,72 +35,175 @@ smokeStack <- function(df = cells,
     }
   }
   
-  for (j in unique(varMat$varName)){
-    if(xName %in% names(df) & j %in% names(df)){
-      interim <- data.frame("Name" = df[,xName], "var" = df[,j])
+  # Creates the dataframe to store the bin variables
+  magicSet <- data.frame("Bin" = c(1:bins))
+  
+  # Asks for categorical variables to map on the y-axis if a set isn't supplied
+  if (setY == F){
+    varNumb <- as.numeric(readline(prompt = paste0("How many variables should be mapped across ", xName, "? ")))
+    varMat <- data.frame("varNumb" = c(1:varNumb), "varName" = "HOLD")
+    
+    for (i in 1:varNumb){
+      magicSet[,1+i] <- readline(prompt = paste0("What is variable number ", i, "? "))
+    }
+  } else {
+    for (i in 1:length(setY)){
+      magicSet[,1+i] <- setY[i]
+    }
+  }
+  for(i in 2:length(names(magicSet))){
+    names(magicSet)[i] <- unique(magicSet[,i])
+    magicSet[,i] <- 0
+  }
+
+  # Now we bin the original data set based on the supplied x-axis variable
+  # First create a fungible df
+  interim <- df
+  # Set its bin variable
+  interim$bin <- 0
+  interim["Name"] <-  df[,xName]
+  # Find the bin range and set the first bin minimum value to the global minimum value of the binning variable
+  xNameBinRange <- (max(df[xName])-min(df[xName]))/bins
+  binSet <- c(min(df[xName]))
+  
+  #If a lim double is supplied, the data is trimmed accordingly
+  if(is.double(lims)){
+    interim <- interim[interim$Name >= lims[1] & interim$Name <= lims[2],]
+  }
+  
+  # Now find the minimum bin value for each bin
+  for (i in 1:bins-1){
+    binSet <- append(binSet, rev(binSet)[1]+xNameBinRange)
+  }
+  # Create the bin variable
+  binID <- 0
+  # Iterate through the ranges to bin cells into their respective bins
+  for (i in 2:length(binSet)){
+    binID <- binID+1
+    if(nrow(interim[interim$Name >= binSet[i-1] & interim$Name <= binSet[i],])>0){
+      interim[interim$Name >= binSet[i-1] & interim$Name <= binSet[i],]$bin <- binID
+    }
+  }
+  
+  if(facet != F){
+    for (silliness in unique(unlist(interim[facet]))){
+      interim_magic <- magicSet
+      
+      new_interim <- interim[interim[facet] == silliness,]
+
+      for (i in names(magicSet)[2:length(magicSet)]){
+        if (normBy == "zscore"){
+
+          if(facet_within){
+            new_interim$var <- (unlist(new_interim[i])-mean(unlist(interim[i])))/sd(unlist(interim[i]))
+          }else {
+            new_interim$var <- (unlist(new_interim[i])-mean(unlist(new_interim[i])))/sd(unlist(new_interim[i]))
+          }
+          legendName <- "Z-Score"
+        } else if (normBy == "lq"){
+          legendName <- "Lower quartile"
+        } else if(normBy == "uq"){
+          legendName <- "Upper quartile"
+        } else if (normBy == "mean"){
+          if(facet_within){
+            new_interim$var <- 100*unlist(new_interim[i])/mean(unlist(interim[i]))
+          } else {
+            new_interim$var <- 100*unlist(new_interim[i])/mean(unlist(new_interim[i]))
+          }
+          legendName <- "% of Mean"
+        } else if (normBy == "iqr"){
+          legendName <- "Interquartile range"
+        } else {
+          legendName <- "Intensity"
+        }
+        for (j in 1:nrow(interim_magic)){
+          if (normBy == "zscore"){
+            interim_magic[i][j,] <- median(new_interim[new_interim$bin == j,]$var)
+            legendName <- "Z-Score"
+          } else if (normBy == "lq"){
+            interim_magic[i][j,] <- quantile(unlist(new_interim[new_interim$bin == j,][i]))[2]
+          } else if(normBy == "uq"){
+            legendName <- "Upper quartile"
+            interim_magic[i][j,] <- quantile(unlist(new_interim[new_interim$bin == j,][i]))[4]
+          } else if (normBy == "mean"){
+            interim_magic[i][j,] <- median(new_interim[new_interim$bin == j,]$var)
+          } else if (normBy == "iqr"){
+            legendName <- "Interquartile range"
+            interim_magic[i][j,] <- quantile(unlist(new_interim[new_interim$bin==j,][i]))[4]-quantile(unlist(new_interim[new_interim$bin==j,][i]))[2]
+          } else {
+            interim_magic[i][j,] <- median(unlist(new_interim[new_interim$bin == j,][i]))
+            legendName <- "Intensity"
+          }
+          if(nrow(new_interim[new_interim$bin == j,]) < minBinNumber){
+            interim_magic[i][j,] <- NA
+          }
+        }
+      }
+      if(!exists("dumbness")){
+        dumbness <- interim_magic
+        dumbness[facet] <- silliness
+      } else {
+        interim_magic[facet] <- silliness
+        dumbness <- rbind(dumbness, interim_magic)
+      }
+    }
+    magicSet <- dumbness
+  } else {
+    for (i in names(magicSet)[2:length(magicSet)]){
       if (normBy == "zscore"){
-        interim$var <- (interim$var-mean(interim$var))/sd(interim$var)
+        interim$var <- (unlist(interim[i])-mean(unlist(interim[i])))/sd(unlist(interim[i]))
         legendName <- "Z-Score"
       } else if (normBy == "lq"){
-        interim$var <- interim$var/quantile(interim$var)[2]
-        legendName <- "% of LQ"
+        legendName <- "Lower quartile"
+      } else if(normBy == "uq"){
+        legendName <- "Upper quartile"
       } else if (normBy == "mean"){
-        interim$var <- 100*interim$var/mean(interim$var)
+        interim$var <- 100*unlist(interim[i])/mean(unlist(interim[i]))
         legendName <- "% of Mean"
+      } else if (normBy == "iqr"){
+        legendName <- "Interquartile range"
       } else {
         legendName <- "Intensity"
       }
-      if(is.double(lims())){
-        interim <- interim[interim$Name >= lims[1] & interim$Name <= lims[2],]
-      }
-      interim$bin <- bins
-      xNameBinRange <- (max(df[xName])-min(df[xName]))/bins
-      binSet <- c(min(df[xName]))
-      for (i in 1:bins-1){
-        binSet <- append(binSet, rev(binSet)[1]+xNameBinRange)
-      }
-      binID <- 0
-      for (i in 2:length(binSet)){
-        binID <- binID+1
-        if(nrow(interim[interim$Name >= binSet[i-1] & interim$Name <= binSet[i],])>0){
-          interim[interim$Name >= binSet[i-1] & interim$Name <= binSet[i],]$bin <- binID
+      for (j in 1:nrow(magicSet)){
+        if (normBy == "zscore"){
+          magicSet[i][j,] <- median(interim[interim$bin == j,]$var)
+          legendName <- "Z-Score"
+        } else if (normBy == "lq"){
+          magicSet[i][j,] <- quantile(unlist(interim[interim$bin == j,][i]))[2]
+        } else if(normBy == "uq"){
+          legendName <- "Upper quartile"
+          magicSet[i][j,] <- quantile(unlist(interim[interim$bin == j,][i]))[4]
+        } else if (normBy == "mean"){
+          magicSet[i][j,] <- median(interim[interim$bin == j,]$var)
+        } else if (normBy == "iqr"){
+          legendName <- "Interquartile range"
+          magicSet[i][j,] <- quantile(unlist(interim[interim$bin==j,][i]))[4]-quantile(unlist(interim[interim$bin==j,][i]))[2]
+        } else {
+          magicSet[i][j,] <- median(unlist(interim[interim$bin == j,][i]))
+          legendName <- "Intensity"
+        }
+        if(nrow(interim[interim$bin == j,]) < minBinNumber){
+          interim_magic[i][j,] <- NA
         }
       }
-      
-      interim$target <- j
-      if(!exists("allData")){
-        allData <- interim
-      } else {
-        allData <- rbind(allData, interim)
-      }
-    } else {
-      print(paste0("Variable '", j, "' not detected in dataset. Please try again"))
     }
   }
-  
-  if (binSize != F & is.numeric(binSize)){
-    for (i in unique(allData$bin)){
-      ricky <- allData[allData$bin == i,]
-      if (nrow(ricky) > binSize){
-        ricky <- ricky[sample(nrow(ricky), binSize),]
-      }
-      if(!exists("ticky")){
-        ticky <- ricky
-      } else{
-        ticky <- rbind(ticky, ricky)
-      }
-    }
-    allData <- ticky
+  if (facet != F){
+    magicSet <- magicSet %>% pivot_longer(cols = c(2:(ncol(magicSet)-1)), names_to = "Target", values_to = "Value")
+    magicSet$Target <- paste0(facet, ": ", unlist(magicSet[facet]), " - ", magicSet$Target)
+  }else {
+    magicSet <- magicSet %>% pivot_longer(cols = c(2:ncol(magicSet)), names_to = "Target", values_to = "Value")
   }
-  
+
   cBin <- c(1:bins)
   cBin <- cBin[c(T, F)]
-
+  
   binSet <- binSet[2:length(binSet)]
   binSet <- round(binSet - (xNameBinRange/2),1)
   binSet <- binSet[c(T, F)]
-
-  draft <- ggplot(data = allData, aes(x = bin, y = target, fill = var))+
+  
+  draft <- ggplot(data = magicSet, aes(x = Bin, y = Target, fill = Value))+
     geom_tile()+
     theme_classic2()+
     scale_fill_viridis(option = viridisPallet)+
@@ -117,6 +215,13 @@ smokeStack <- function(df = cells,
   if(fixedCoord==T){
     draft  <- draft+coord_fixed()
   }
+  
   print(draft)
-  ggsave(saveFile)
+  if(saveFile != F & is.character(saveFile)){
+    ggsave(saveFile)
+  }
+  if(saveData != F & is.character(saveData)){
+    write.csv(magicSet, saveData, row.names = F)
+  }
 }
+
