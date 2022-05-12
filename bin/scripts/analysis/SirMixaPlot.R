@@ -1,9 +1,15 @@
-#SirMixaPlot version 8.2 - Danger! High Voltage
+#SirMixaPlot version 8.3 - Less is more
 #----------------------------------------------------------------------------------------------------------
 
 #This program is designed to take a csv (comma separated values) file and generate scatterplots based on columns.
+
+# Changes from version 8.2:
+#   -Removed from redundant functions. Mostly the gate() and negPopCorrect since they no longer serve a purpose
+#   -Streamlined some functions to remove unnecessary global variables
+#   -Changed normalizer to use LMean_NUC_edu instead of the now defunct ALIMean_NUC_edu
+
 # Changes from version 8.1:
-#   -Changed the defualt EdU neg setting on normalizer()
+#   -Changed the default EdU neg setting on normalizer()
 #   -Added a work-around for concater() should rbinding fail due to missing columns
 #   -imaGen() now also creates a concatanated csv of all the ROIs in the WholeCell folder with the _ROI_ tag
 #   -Added runPCA() function to take a dataframe and generate a PCA biplot; still in beta testing
@@ -24,6 +30,53 @@
 
 # Functions for your pleasure
 
+#----------------------------------------------------------------
+#sirmixaplot() loads the csv file (filo) and will call joiner() to start graphing if run is TRUE. This may lead to negPopCorrect if the appropriate names aren't present
+#To re-run the negPopCorrect, simply call adjust as TRUE
+sirmixaplot <- function(filo, 
+                        run=TRUE, 
+                        adjust=TRUE){
+  #The script, m'lord
+  
+  #This is the beginning of the readline prompts for the program. User inputs desired output conditionals. Also, certain columns are added for safety...
+  thingee <<- filo
+  cat(paste("Opening file: ", thingee, sep=""))
+  cat("\n")
+  
+  #This checks if the file has the '_cells', which signals it has been previously processed. Otherwise it extracts the appropriate rows and creates a cells file
+  if (grepl("_cells.csv", thingee, fixed = TRUE)){
+    cells <<- read.table(file=thingee,header=TRUE, fileEncoding = "latin1", sep = ",")
+  } else {
+    cells <<- read.table(file=thingee,header=TRUE, fileEncoding = "latin1", sep = ",")
+    cat("Creating a new file, sir or madam.")
+    cat("\n")
+    thingee <<- paste0(substr(thingee, 1, nchar(thingee)-4), "_cells.csv")
+    cat(paste(thingee, "created."))
+    for (i in 1:ncol(cells)){
+      if (grepl("Mean_", names(cells)[i])){
+        cells[paste0("I", names(cells)[i])] <<- cells[,i]*cells$Area
+      }
+    }
+    cells$log2_dna <<- log(cells$IntDen_NUC_dna, 2)
+    for (i in 1:ncol(cells)){
+      if (grepl("Mean_", names(cells)[i])){
+        cells[paste0("L", names(cells)[i])] <<- log(cells[,i], 10)
+      }
+    }
+  }
+  cat("\n")
+  
+  #Checks that some size correctiong has occured and begins making the graph
+  if(run==TRUE){
+    joiner()
+  }
+  if(!"dna_norm" %in% names(cells) & TRUE %in% grepl("NUC_edu", names(cells))){
+    normalizer()
+  }
+  #writes the file
+  write.csv(cells, file = thingee, row.names = FALSE)
+}
+
 #--------------------------------------------------------------------------------------
 #joiner() connects the sirmixaplot() with grapho() and can be used to graph new plots without running through sirmixaplot(). Default dataset is cells but any dataset can be used
 joiner <- function(df = cells){
@@ -38,16 +91,20 @@ joiner <- function(df = cells){
   cat("\n")
   
   #This sets the x and y variables
-  px<<-readline(prompt = "px - What parameter is the x-axis: ")
-  xname<<-readline(prompt = "What is the name of the x axis: ")
+  px<-readline(prompt = "px - What parameter is the x-axis: ")
+  xname<-readline(prompt = "What is the name of the x axis: ")
   cat("\n")
-  py<<-readline(prompt = "py - What parameter is the y-axis: ")
-  yname<<-readline(prompt = "What is the name of the y axis: ")
+  py<-readline(prompt = "py - What parameter is the y-axis: ")
+  yname<-readline(prompt = "What is the name of the y axis: ")
   cat("Working...")
   cat("\n")
   
   #calls the graphing function
-  grapho(df)
+  grapho(df = cells,
+         X = px, 
+         Y = py, 
+         Xn = xname,
+         Yn = yname)
 }
 
 #grapho() actually makes the scatter plots
@@ -84,69 +141,6 @@ grapho <- function(df = cells,
   cat("Plot generated")
   cat("\n")
   print(qq)
-
-  cat("Call 'modthequad(df)' to apply quadrant analysis")
-  cat("\n")
-  cat("Call 'cull()' to remove certain populations from original dataset (DANGER, but less than before)")
-  cat("\n")
-  cat("Call 'eGod(df)' to apply ergodic analysis of S phase cells")
-  cat("\n")
-  cat("Call 'color_denisty()' to add density gradient to qq plot")
-  cat("\n")
-  cat("Call 'changeAxis(min X, max, X, min Y, max Y)' to change the axes of qq plots")
-  cat("\n")
-  cat("Call 'parser(df, df$variable)' to create a gated population")
-  cat("\n")
-}
-
-#----------------------------------------------------------------
-#sirmixaplot() loads the csv file (filo) and will call joiner() to start graphing if run is TRUE. This may lead to negPopCorrect if the appropriate names aren't present
-#To re-run the negPopCorrect, simply call adjust as TRUE
-sirmixaplot <- function(filo, 
-                        run=TRUE, 
-                        adjust=TRUE){
-  #The script, m'lord
-  
-  #This is the beginning of the readline prompts for the program. User inputs desired output conditionals. Also, certain columns are added for safety...
-  thingee <<- filo
-  cat(paste("Opening file: ", thingee, sep=""))
-  cat("\n")
-  
-  #This checks if the file has the '_cells', which signals it has been previously processed. Otherwise it extracts the appropriate rows and creates a cells file
-  if (grepl("_cells.csv", thingee, fixed = TRUE)){
-    cells <<- read.table(file=thingee,header=TRUE, fileEncoding = "latin1", sep = ",")
-  } else {
-    cells <<- read.table(file=thingee,header=TRUE, fileEncoding = "latin1", sep = ",")
-    cat("Creating a new file, sir or madam.")
-    cat("\n")
-    thingee <<- paste0(substr(thingee, 1, nchar(thingee)-4), "_cells.csv")
-    cat(paste(thingee, "created."))
-    for (i in 1:ncol(cells)){
-      if (grepl("Mean_", names(cells)[i])){
-        cells[paste0("I", names(cells)[i])] <<- cells[,i]*cells$Area
-      }
-    }
-    cells$log2_dna <<- log(cells$IntDen_NUC_dna, 2)
-    for (i in 1:ncol(cells)){
-      if (grepl("Mean_", names(cells)[i])){
-        cells[paste0("L", names(cells)[i])] <<- log(cells[,i], 10)
-      }
-    }
-  }
-  
-  #writes the file
-  write.csv(cells, file = thingee, row.names = FALSE)
-  cat("\n")
-  
-  #Checks that some size correctiong has occured and begins making the graph
-  if(run==TRUE){
-    if(TRUE %in% str_detect(names(cells), "ALIMean_.")){
-      joiner(cells)
-    } else if(adjust==TRUE){
-      joiner(cells)
-      gate()
-    }
-  }
 }
 
 #----------------------------------------------------------------------------------
@@ -292,51 +286,6 @@ eGod <- function(df=cells){
 }
 
 #----------------------------------------------------------------
-#This function creates new dataframes of gated populations.
-gate <- function(df=cells,
-                 gateName="negPop"){
-  print(qq+geom_density_2d())
-  cat(paste0("Gating out the ", gateName, " population:"))
-  cat("\n")
-  x1 <- readline(prompt = "Which value of pX should the gating begin: ")
-  x2 <- readline(prompt = "Which value of pX should the gating end: ")
-  y1 <- readline(prompt = "Which value of py should the gating begin: ")
-  y2 <- readline(prompt = "Which value of py should the gating end: ")
-  xSet <- c(x1, x2)
-  ySet <- c(y1, y2)
-  
-  workaround <- subset(df, get(px) > as.numeric(xSet[1]) & get(px) < as.numeric(xSet[2]))
-  workaround <<- subset(workaround, get(py) > as.numeric(ySet[1]) & get(py) < as.numeric(ySet[2]))
-  assign(gateName, workaround, envir = .GlobalEnv)
-  
-  negPop_correct()
-}
-
-#This function uses a true negative population to adjust the background
-negPop_correct <- function(){
-  x <<- strsplit(px, "_")
-  x <- paste0(x[[1]][length(x[[1]])-1], "_", x[[1]][length(x[[1]])])
-  y <- strsplit(py, "_")
-  y <- paste0(y[[1]][length(y[[1]])-1], "_", y[[1]][length(y[[1]])])
-  px_background <<- mean(negPop[names(negPop)==paste0("Mean_", x)][,1])
-  py_background <<- mean(negPop[names(negPop)==paste0("Mean_", y)][,1])
-  if (x != "dna"){
-    cells[paste0("AIMean_", x)] <<- cells[paste0("IMean_", x)]-(cells$Area*px_background)
-    cells[paste0("AIMean_", x)] <<- cells[paste0("AIMean_", x)] + abs(min(cells[paste0("AIMean_", x)]))+1
-    cells[paste0("ALIMean_", x)] <<- log(cells[paste0("AIMean_", x)], 10)
-  }
-  if (y != "dna"){
-    cells[paste0("AIMean_", y)] <<- cells[paste0("IMean_", y)]-(cells$Area*py_background)
-    cells[paste0("AIMean_", y)] <<- cells[paste0("AIMean_", y)] + abs(min(cells[paste0("AIMean_", y)]))+1
-    cells[paste0("ALIMean_", y)] <<- log(cells[paste0("AIMean_", y)], 10)
-  }
-  write.csv(cells, file = thingee, row.names = FALSE)
-  if (y == "NUC_edu" | x == "NUC_edu"){
-    normalizer()
-  }
-}
-
-#----------------------------------------------------------------
 #This function will automatically pseudo-color density of a cell cycle profile and provides the basic functions for density pseudo-coloring
 get_density <- function(px, 
                         py,
@@ -359,78 +308,85 @@ color_density<-function(){
   print(qq)
 }
 
-#----------------------------------------------------------------
-#This function changes the axis of qq files via changeAxis(X0, X1, Y0, Y1)
-changeAxis <- function(w,
-                       x,
-                       y,
-                       z){
-  newAxis <<- TRUE
-  store <<- c(w,x,y,z)
-  qq<<-qq+coord_cartesian(xlim = c(w,x), ylim = c(y, z))
-  print(qq+geom_density_2d())
-}
 
 #----------------------------------------------------------------
 #This function asks you to define a G1 peak and re-assigns that value to  '1'
 normalizer <- function(){
   
   #create a column holder (just in case...)
-  cells$edu<<-"holder"
-  cells$ploidy<<-"holder"
+  cells$edu<<-"Negative"
+  cells$ploidy<<-"2N"
+  if(T %in% is.na(cells$LMean_NUC_edu)){
+    print(paste0("Detected ", nrow(cells[is.na(cells$LMean_NUC_edu),]), " NA values in LMean_NUC_edu (", round(100*nrow(cells[is.na(cells$LMean_NUC_edu),])/nrow(cells), 2),"% of tota cells)."))
+    remove_nas <- readline(prompt = "Should these be removed? (Y/n) ")
+    if(remove_nas != "n"){
+      print("Removing rows with NA values")
+      cells <<- cells[!is.na(cells$LMean_NUC_edu),]
+    }
+  }
   cat("Determining the G1 population now.")
   cat("\n")
   
   #This part calls an EdU negative popuation and creates the normalized values
-  bigBin <- which.max(density(cells$ALIMean_NUC_edu)$y)
-  edu_neg <- density(cells$ALIMean_NUC_edu)$x[bigBin]+0.5
-  edu_hist <- ggplot(cells, aes(ALIMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
+  bigBin <- which.max(density(cells[!is.na(cells$LMean_NUC_edu) & !is.infinite(cells$LMean_NUC_edu),]$LMean_NUC_edu)$y)
+  edu_neg <- density(cells[!is.na(cells$LMean_NUC_edu) & !is.infinite(cells$LMean_NUC_edu),]$LMean_NUC_edu)$x[bigBin]+0.1
+  edu_hist <- ggplot(cells, aes(LMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
   print(edu_hist)
   g1_good <- readline(prompt = paste0("Is ", format(round(edu_neg, 2), nsmall = 2), " representative of the EdU cutoff? (Y/n) "))
   if (g1_good == "n"){
     edu_neg = as.numeric(readline(prompt = "What value should EdU be cutoff as negative? "))
-    edu_hist <- ggplot(cells, aes(ALIMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
+    edu_hist <- ggplot(cells, aes(LMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
     print(edu_hist)
   }
   cat(paste0("Using ", format(round(edu_neg, 2), nsmall = 2), " as the EdU cutoff."))
   cat("\n")
-  for (i in 1:nrow(cells)){
-    if (cells$ALIMean_NUC_edu[i] > edu_neg){
-      cells$edu[i] <<- "Positive"
-    } else {
-      cells$edu[i] <<- "Negative"
-    }
-  }
-  eduNegCells <-subset(cells, ALIMean_NUC_edu < edu_neg)
-  cells$edu_norm <<- (cells$ALIMean_NUC_edu+1)-mean(eduNegCells$ALIMean_NUC_edu)
+
+  print(typeof(edu_neg))
+  cells[cells$LMean_NUC_edu > edu_neg & !is.na(cells$LMean_NUC_edu),]$edu <<- "Positive"
+  
+  eduNegCells <-subset(cells, LMean_NUC_edu < edu_neg)
+  cells$edu_norm <<- (cells$LMean_NUC_edu+1)-mean(eduNegCells$LMean_NUC_edu)
   
   #This part calls the 2N peak that is EdU-negative   
   bigBin <- which.max(density(eduNegCells$log2_dna)$y)
   diploid <- density(eduNegCells$log2_dna)$x[bigBin]
-  dna_hist <<- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid)+xlab("DNA content")
+  dna_hist <- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid, color = "green", size = 1.5)+xlab("DNA content")
   print(dna_hist)
-  g1_good <- readline(prompt = paste0("Is ", format(round(diploid, 2), nsmall = 2), " representative of the 2N peak? (Y/n) "))
+  g1_good <- readline(prompt = paste0("Is ", format(round(diploid, 2), nsmall = 2), " representative of the 2N peak? (Y/n/manual) "))
   if (g1_good == "n"){
-    diploid = as.numeric(readline(prompt = "What is the value of the 2N peak? "))
-    dna_hist <<- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid)+xlab("DNA content")
+    diploid <- as.numeric(readline(prompt = "What is the value of the 2N peak? "))
+    dna_hist <- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid, color = "green", size = 1.5)+xlab("DNA content")
     print(dna_hist)
   }
-  cat(paste0("Using ", format(round(diploid, 2), nsmall = 2), " as the 2N peak value."))
-  cat("\n")
   
   
-  #This part bins each point's ploidy        
-  cells$dna_norm <<- (cells$log2_dna+1)-diploid
-  
-  for (i in 1:nrow(cells)){
-    if (cells$dna_norm[i] < 1.6) {
-      cells$ploidy[i] <<- "2N"
-    } else if (cells$dna_norm[i] > 2.6) {
-      cells$ploidy[i] <<- ">4N"
-    } else{
-      cells$ploidy[i] <<- "4N"
+  if (g1_good == "manual"){
+    diploid <- as.numeric(readline(prompt = "What is the value of the 2N peak? "))
+    dna_hist <- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid, color = "green", size = 1.5)+xlab("DNA content")
+    print(dna_hist)
+    peak_2n <- as.numeric(readline(prompt = "What should be the 2N - 4N trough value: "))
+    if(peak_2n == ""){
+      peak_2n <- diploid
     }
+    dna_hist <- dna_hist+geom_vline(xintercept = peak_2n, color = "blue", size = 1.5)
+    print(dna_hist)
+    peak_4n <- as.numeric(readline(prompt = "What should be the 4N - >4N trough value: "))
+    dna_hist <- dna_hist+geom_vline(xintercept = peak_4n, color = "red", size = 1.5)
+    print(dna_hist)
+    
+    cells$dna_norm <<- (cells$log2_dna+1)-diploid
+    cells[cells$dna_norm > peak_2n,]$ploidy <<- "4N"
+    cells[cells$dna_norm > peak_4n,]$ploidy <<- ">4N"
+    
+  }else {
+    cat(paste0("Using ", format(round(diploid, 2), nsmall = 2), " as the 2N peak value."))
+    cat("\n")
+    #This part bins each point's ploidy        
+    cells$dna_norm <<- (cells$log2_dna+1)-diploid
+    cells[cells$dna_norm > 1.6,]$ploidy <<- "4N"
+    cells[cells$dna_norm > 2.6,]$ploidy <<- ">4N"
   }
+  
   
   ckF <- readline(prompt = paste0("Is the filename ", thingee, "? (Y/n) "))
   if (ckF != "n"){
@@ -439,55 +395,10 @@ normalizer <- function(){
     thingee <<-readline(prompt = 'What is the name of the file: ')
     write.csv(cells, file = thingee, row.names = FALSE)
   }
-  px<<-"dna_norm"
-  xname <<- "DNA content (Log 2)"
-  py <<- "edu_norm"
-  yname <<- "EdU content (Log 10)"
-  changeAxis(0.5,3.5,0.5,2.5)
-  grapho(cells)
+
+  grapho(cells,X = "dna_norm", Y = "edu_norm", Xn = "DNA content (Log 2)", Yn = "EdU content (Log 10)")
 }
 
-#----------------------------------------------------------------
-#this function just makes a histogram for you (yay!)
-makehisto<-function(df=cells, va="log2_dna"){
-  hh<<-ggplot(df, aes(x = df[va]))+geom_density()+
-    theme_classic()+
-    theme(axis.line = element_line(color = "black", size = 1.5), 
-          axis.ticks = element_line(color = "black", size = 1.5), 
-          axis.text = element_text(size = 24, family = "sans", color = "black"),
-          axis.title = element_text(size = 36, family = "sans", color = "black"))+
-    xlab("Variable")
-  print(hh)
-}
-
-#-----------------------------------------------------------------
-parser <- function(df=cells, va){
-  catNam <<- readline(prompt = "What is the name of this variable: ")
-  catNum <<- as.integer(readline(prompt = "How many categories: "))
-  cells$holder <<- "NA"
-  catz <<- c()
-  for (i in 1:catNum){
-    catz[i]<-readline(prompt = paste0("What is the name of category ", i, " of ", catNam, ": "))
-  }
-  cat("\n")
-  for (i in catz){
-    owl <<- as.numeric(readline(prompt = paste0("What is the low value of ", i, ": ")))
-    hige <<- as.numeric(readline(prompt = paste0("What is the high value of ", i, ": ")))
-    for (j in 1:nrow(cells)){
-      if(va[j] >= owl & va[j] <= hige){
-        cells$holder[j]<<-i
-      }
-    }
-    cat("\n")
-  }
-  if (catNam %in% colnames(cells)){
-    cells[match(catNam, names(cells))] <<- NULL
-    colnames(cells)[match("holder", names(cells))] <<- catNam
-  } else{
-    colnames(cells)[match("holder", names(cells))] <<- catNam
-  }
-  write.csv(cells, file = thingee, row.names = FALSE)
-}
 
 #-----------------------------------------------------------------
 # So this is the compensating function in case (god forbid) you have spectral overlap. Make sure to run this having graphed the offending colors against eachother
