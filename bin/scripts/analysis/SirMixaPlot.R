@@ -45,9 +45,9 @@ sirmixaplot <- function(filo,
   
   #This checks if the file has the '_cells', which signals it has been previously processed. Otherwise it extracts the appropriate rows and creates a cells file
   if (grepl("_cells.csv", thingee, fixed = TRUE)){
-    cells <<- read.table(file=thingee,header=TRUE, fileEncoding = "latin1", sep = ",")
+    cells <<- read_csv(file=thingee)
   } else {
-    cells <<- read.table(file=thingee,header=TRUE, fileEncoding = "latin1", sep = ",")
+    cells <<- read_csv(file=thingee)
     cat("Creating a new file, sir or madam.")
     cat("\n")
     thingee <<- paste0(substr(thingee, 1, nchar(thingee)-4), "_cells.csv")
@@ -74,7 +74,7 @@ sirmixaplot <- function(filo,
     normalizer()
   }
   #writes the file
-  write.csv(cells, file = thingee, row.names = FALSE)
+  write_csv(cells, thingee)
 }
 
 #--------------------------------------------------------------------------------------
@@ -341,7 +341,6 @@ normalizer <- function(){
   cat(paste0("Using ", format(round(edu_neg, 2), nsmall = 2), " as the EdU cutoff."))
   cat("\n")
 
-  print(typeof(edu_neg))
   cells[cells$LMean_NUC_edu > edu_neg & !is.na(cells$LMean_NUC_edu),]$edu <<- "Positive"
   
   eduNegCells <-subset(cells, LMean_NUC_edu < edu_neg)
@@ -361,13 +360,17 @@ normalizer <- function(){
   
   
   if (g1_good == "manual"){
-    diploid <- as.numeric(readline(prompt = "What is the value of the 2N peak? "))
+    diploid_old <- diploid
+    diploid <- readline(prompt = "What is the value of the 2N peak? ")
+    if(diploid == ""){
+      diploid <- diploid_old
+    } else {
+      diploid <- as.numeric(diploid)
+    }
     dna_hist <- ggplot(eduNegCells, aes(log2_dna))+geom_density()+geom_vline(xintercept = diploid, color = "green", size = 1.5)+xlab("DNA content")
     print(dna_hist)
     peak_2n <- as.numeric(readline(prompt = "What should be the 2N - 4N trough value: "))
-    if(peak_2n == ""){
-      peak_2n <- diploid
-    }
+
     dna_hist <- dna_hist+geom_vline(xintercept = peak_2n, color = "blue", size = 1.5)
     print(dna_hist)
     peak_4n <- as.numeric(readline(prompt = "What should be the 4N - >4N trough value: "))
@@ -375,8 +378,8 @@ normalizer <- function(){
     print(dna_hist)
     
     cells$dna_norm <<- (cells$log2_dna+1)-diploid
-    cells[cells$dna_norm > peak_2n,]$ploidy <<- "4N"
-    cells[cells$dna_norm > peak_4n,]$ploidy <<- ">4N"
+    cells[cells$log2_dna > peak_2n,]$ploidy <<- "4N"
+    cells[cells$log2_dna > peak_4n,]$ploidy <<- ">4N"
     
   }else {
     cat(paste0("Using ", format(round(diploid, 2), nsmall = 2), " as the 2N peak value."))
@@ -390,10 +393,10 @@ normalizer <- function(){
   
   ckF <- readline(prompt = paste0("Is the filename ", thingee, "? (Y/n) "))
   if (ckF != "n"){
-    write.csv(cells, file = thingee, row.names = FALSE)
+    write_csv(cells, thingee)
   } else{
     thingee <<-readline(prompt = 'What is the name of the file: ')
-    write.csv(cells, file = thingee, row.names = FALSE)
+    write_csv(cells, thingee)
   }
 
   grapho(cells,X = "dna_norm", Y = "edu_norm", Xn = "DNA content (Log 2)", Yn = "EdU content (Log 10)")
@@ -471,7 +474,7 @@ compensate <- function(df = cells){
             }
           }
           cat("Means recalculated. Thank you for your patience and patronage.")
-          write.csv(cells, thingee, row.names = FALSE)
+          write_csv(cells, thingee)
         }
       }
     }
@@ -716,3 +719,5 @@ suppressPackageStartupMessages(library(viridis))
 suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(RecordLinkage))
 suppressPackageStartupMessages(library(ggbiplot))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(plotly))
