@@ -184,7 +184,7 @@ smokeStack <- function(df = cells,
           legendName <- "Intensity"
         }
         if(nrow(interim[interim$bin == j,]) < minBinNumber){
-          interim_magic[i][j,] <- NA
+          magicSet[i][j,] <- NA
         }
       }
     }
