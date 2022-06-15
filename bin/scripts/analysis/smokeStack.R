@@ -12,6 +12,7 @@ smokeStack <- function(df = cells,
                        facet = F,
                        facet_within =T,
                        fixedCoord = T,
+                       mid_set=F,
                        saveFile = "figures/coloredBar.svg",
                        saveData = F,
                        xdim = 5,
@@ -214,6 +215,9 @@ smokeStack <- function(df = cells,
     scale_x_continuous(breaks = cBin, labels = binSet)
   if(fixedCoord==T){
     draft  <- draft+coord_fixed()
+  }
+  if (mid_set != F & is.numeric(mid_set)){
+    draft <- draft+scale_fill_gradient2(low = "blue", midpoint = mid_set, mid = "black", high = "red")
   }
   
   print(draft)

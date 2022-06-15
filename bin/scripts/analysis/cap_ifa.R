@@ -8,11 +8,12 @@ suppressPackageStartupMessages(library(hash))
 # It is **IMPERATIVE** that the df variable is a dataset of cells from a single image. If your dataset has cells from multiple images, subset the dataset my image id and run the function on each subset separately
 # The second function, which condenses the lists based on overlap, is automatically called
 foci_caller <- function(df = cells,
-                        variable = "nProtein",
+                        variable = "n",
                         variable_subset = "Positive",
+                        variable_intensity = "Mean_NUC_n",
                         midpointer_x = "XM_NUC_dna",
                         midpointer_y = "YM_NUC_dna", 
-                        wiggle = 4,
+                        wiggle = 2,
                         fileName = "NN_all_cells.csv"){
   cat("Running foci_caller...\n")
   
@@ -71,19 +72,21 @@ foci_caller <- function(df = cells,
   }
   cat("foci called\n")
   # The new dataset is saved
-  write.csv(df, fileName, row.names = F)
+  write.csv(df, paste0("data/", fileName), row.names = F)
   # The next function will condense the lists of infected neighbors based on overlapping number IDs
   foci_compact(fileName = fileName,
                variable = variable,
-               variable_subset = variable_subset)
+               variable_subset = variable_subset,
+               variable_intensity = variable_intensity)
 }
 
 foci_compact <- function(fileName = "assigned.csv", 
-                         variable = "nProtein",
-                         variable_subset = "Positive", 
+                         variable = "n",
+                         variable_subset = "Positive",
+                         variable_intensity = "Mean_NUC_n",
                          overlap = 1){
   cat(paste0("Running foci_compact from ", fileName, ".\n"))
-  cells_new <- read.csv(fileName)
+  cells_new <- read.csv(paste0("data/",fileName))
   #First, we get the cells that are infected
   fList <- cells_new[cells_new[variable] == variable_subset,]
   #Then we'll order them from great to lowest
@@ -161,21 +164,52 @@ foci_compact <- function(fileName = "assigned.csv",
   uni_x_name <- names(cells_new)[grepl("X_NUC", names(cells_new))][1]
   uni_y_name <- names(cells_new)[grepl("Y_NUC", names(cells_new))][1]
   
-  cells_new$core_prob <- cells_new$NNs/cells_new$focal_size
-  cells_new$core_prob_norm <- 0
+#  cells_new$core_prob <- cells_new$NNs/cells_new$focal_size
+#  cells_new$core_prob_norm <- 0
   cells_new$distance_to_center <- NA
-  cells_new$core_dist_norm <- 0
-  cells_new$top_core_distance <- F
-  cells_new[is.na(cells_new$core_prob),]$core_prob <- 0
+#  cells_new$core_dist_norm <- 0
+#  cells_new$top_core_distance <- F
+#  cells_new[is.na(cells_new$core_prob),]$core_prob <- 0
+  
+  cells_new$intensity_rank <- 0
+  cells_new$distance_rank <- 0
+  cells_new$nn_rank <- 0
+  
   for (a in unique(cells_new$focus)){
     #Find the median x and y values and calculate distance
     uni_x <- exp(mean(log(cells_new[cells_new$focus == a,][,uni_x_name])))
     uni_y <- exp(mean(log(cells_new[cells_new$focus == a,][,uni_y_name])))
-    cells_new[cells_new$focus == a,]$distance_to_center <- sqrt((cells_new[cells_new$focus == a,][,uni_x_name]-uni_x)^2+(cells_new[cells_new$focus == a,][,uni_y_name]-uni_y)^2)
-    cells_new[cells_new$focus == a,]$core_prob_norm <- 100*cells_new[cells_new$focus == a,]$core_prob/sum(cells_new[cells_new$focus == a,]$core_prob)
-    cells_new[cells_new$focus == a,]$top_core_distance <- cells_new[cells_new$focus == a,]$distance_to_center == min(cells_new[cells_new$focus == a,]$distance_to_center)
+    
+    ticket <- subset(cells_new, focus == a)
+    ticket$distance_to_center <- sqrt((ticket[,uni_x_name]-uni_x)^2+(ticket[,uni_y_name]-uni_y)^2)
+    ticket<- ticket[order(-ticket$distance_to_center),]
+    ticket$distance_rank <- c(1:nrow(ticket))
+    
+    ticket <- ticket[order(ticket$NNs),]
+    ticket$nn_rank <- c(1:nrow(ticket))
+    
+    ticket <- ticket[order(-unlist(ticket[variable_intensity])),]
+    ticket$intensity_rank <- c(1:nrow(ticket))
+    
+    nn_var <- var(ticket$NNs)
+    distance_var <- var(ticket$distance_to_center)
+    intensity_var <- var(unlist(ticket[variable_intensity]))
+    total_var <- nn_var+distance_var+intensity_var
+    nn_var <- nn_var/total_var
+    distance_var <- distance_var/total_var
+    intensity_var <- intensity_var/total_var
+    
+    ticket$intensity_rank <- ticket$intensity_rank*intensity_var
+    ticket$distance_rank <- ticket$distance_rank*distance_var
+    ticket$nn_rank <- ticket$nn_rank*nn_var
+    ticket$cap_rank <- (ticket$nn_rank+ticket$distance_rank+ticket$intensity_rank)/nrow(ticket)
+    if (!exists("core_data")){
+      core_data <- ticket
+    } else {
+      core_data <- rbind(core_data, ticket)
+    }
   }
-  write.csv(cells_new, paste0("data/capIFA_",strsplit(fileName, "/")[[1]][2]), row.names = F)
+  write.csv(core_data, paste0("data/capIFA_",fileName), row.names = F)
   cat("Foci compacted.\n")
 }
 

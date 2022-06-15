@@ -110,7 +110,7 @@ grapho <- function(df = cells,
                    Yn = yname){
   
   #backup dataframe is generated
-  interim <<- cells
+  interim <<- df
 
   cat("Data frame generated")
   cat("\n")
