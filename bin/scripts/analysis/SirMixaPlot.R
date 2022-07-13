@@ -58,18 +58,23 @@ sirmixaplot <- function(filo,
         cells[paste0("L", names(cells)[i])] <<- log(cells[,i], 10)
       }
     }
+    #writes the file
+    write_csv(cells, thingee)
   }
   cat("\n")
   
   #Checks that some size correctiong has occured and begins making the graph
   if(run==TRUE){
     joiner()
+    #writes the file
+    write_csv(cells, thingee)
   }
   if(!"dna_norm" %in% names(cells) & TRUE %in% grepl("NUC_edu", names(cells))){
     normalizer()
+    #writes the file
+    write_csv(cells, thingee)
   }
-  #writes the file
-  write_csv(cells, thingee)
+  
 }
 
 #--------------------------------------------------------------------------------------
@@ -713,6 +718,6 @@ suppressPackageStartupMessages(library(MASS))
 suppressPackageStartupMessages(library(viridis))
 suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(RecordLinkage))
-suppressPackageStartupMessages(library(ggbiplot))
+#suppressPackageStartupMessages(library(ggbiplot))
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(plotly))

@@ -182,10 +182,10 @@ foci_compact <- function(fileName = "assigned.csv",
     
     ticket <- subset(cells_new, focus == a)
     ticket$distance_to_center <- sqrt((ticket[,uni_x_name]-uni_x)^2+(ticket[,uni_y_name]-uni_y)^2)
-    ticket<- ticket[order(-ticket$distance_to_center),]
+    ticket<- ticket[order(ticket$distance_to_center),]
     ticket$distance_rank <- c(1:nrow(ticket))
     
-    ticket <- ticket[order(ticket$NNs),]
+    ticket <- ticket[order(-ticket$NNs),]
     ticket$nn_rank <- c(1:nrow(ticket))
     
     ticket <- ticket[order(-unlist(ticket[variable_intensity])),]
@@ -203,6 +203,10 @@ foci_compact <- function(fileName = "assigned.csv",
     ticket$distance_rank <- ticket$distance_rank*distance_var
     ticket$nn_rank <- ticket$nn_rank*nn_var
     ticket$cap_rank <- (ticket$nn_rank+ticket$distance_rank+ticket$intensity_rank)/nrow(ticket)
+    
+    ticket <- ticket[order(ticket$cap_rank),]
+    ticket$core_rank <- c(1:nrow(ticket))
+    
     if (!exists("core_data")){
       core_data <- ticket
     } else {
@@ -211,6 +215,7 @@ foci_compact <- function(fileName = "assigned.csv",
   }
   write.csv(core_data, paste0("data/capIFA_",fileName), row.names = F)
   cat("Foci compacted.\n")
+  foci <<- core_data
 }
 
 # This function should be run from the `files` directory and collects basic data on the plaques called in the earlier functions:
