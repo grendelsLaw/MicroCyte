@@ -23,7 +23,20 @@
 #   -imaGen() is now much bigger and generates combined CSVs for nuclear vs whole cell comparisons
 
 #Things still that need to be coded:
-#   -Exploratory data analyses function called explore() made
+
+#Program opens required packages
+#If these packages aren't install, use the '0_setup.R' function to install them.
+
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggpubr))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(viridis))
+suppressPackageStartupMessages(library(stringr))
+suppressPackageStartupMessages(library(RecordLinkage))
+#suppressPackageStartupMessages(library(ggbiplot))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(plotly))
+
 
 
 #------------------------------------------------------------------------------------------------------------
@@ -709,15 +722,3 @@ cellCycle_colors <- c("#D4D4D4", "#98C84C", "#23B8CC", "#F16B1A", "#E5001C")
 
 
 #-----------------------------------------------------------------------------------------------------------
-#Program opens required packages
-#If these packages aren't install, use the '0_setup.R' function to install them.
-
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(ggpubr))
-suppressPackageStartupMessages(library(MASS))
-suppressPackageStartupMessages(library(viridis))
-suppressPackageStartupMessages(library(stringr))
-suppressPackageStartupMessages(library(RecordLinkage))
-#suppressPackageStartupMessages(library(ggbiplot))
-suppressPackageStartupMessages(library(tidyverse))
-suppressPackageStartupMessages(library(plotly))
