@@ -14,6 +14,13 @@ abra <- function(){
     dir.create("PNGS")
   }
   fAll <- list.files(pattern = ".tif")
+  if(length(fAll)==0){
+    imageNumber <- strsplit(getwd(), "/")[[1]][length(strsplit(getwd(), "/")[[1]])]
+    print(paste0("No images found in: ",imageNumber))
+  } else if (length(fAll)>4){
+    imageNumber <- strsplit(getwd(), "/")[[1]][length(strsplit(getwd(), "/")[[1]])]
+    print(paste0("Excess (>4) images found in: ", imageNumber))
+  }
   if(!"originals" %in% list.files()){
     dir.create("originals")
     file.copy(fAll, "originals")
