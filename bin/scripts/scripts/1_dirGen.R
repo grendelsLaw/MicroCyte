@@ -7,7 +7,7 @@
 dirGen <- function(idType="name",
                    singleImage="auto",
                    imageNumber=5,
-                   numberOfTargets=4){
+                   numberOfTargets=5){
   #First, lets generate the appropriate folders
   dirList <- list.files()
   if(!"files" %in% dirList){
@@ -66,9 +66,9 @@ if (singleImages == "single"){
   }
 
 }
-ticko <- readline(prompt = "How many targets are listed in the schema (Default 4): ")
+ticko <- readline(prompt = "How many targets are listed in the schema (Default 5): ")
 if (is.character(ticko)){
-  ticko <- 4
+  ticko <- 5
 } else {
   ticko <- as.numeric(ticko)
 }
