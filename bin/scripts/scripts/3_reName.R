@@ -1,8 +1,8 @@
 #!/usr/bin/Rscript
 
-reName <- function(){
+reName <- function(nameNumber=6){
   schema <- read.csv("schema.csv")
-  nameTargets <- names(schema)[2:5]
+  nameTargets <- names(schema)[2:nameNumber]
   xList <- list.files(path = "files/")
   for (a in xList){
     if (!grepl(".ijm", x = a)){
