@@ -6,7 +6,7 @@
 # Changes from version 8.2:
 #   -Removed from redundant functions. Mostly the gate() and negPopCorrect since they no longer serve a purpose
 #   -Streamlined some functions to remove unnecessary global variables
-#   -Changed normalizer to use LMean_NUC_edu instead of the now defunct ALIMean_NUC_edu
+#   -Changed normalizer to use LMean_ANC_edu instead of the now defunct ALIMean_ANC_edu
 
 # Changes from version 8.1:
 #   -Changed the default EdU neg setting on normalizer()
@@ -65,7 +65,17 @@ sirmixaplot <- function(filo,
     cat("\n")
     thingee <<- paste0(substr(thingee, 1, nchar(thingee)-4), "_cells.csv")
     cat(paste(thingee, "created."))
-    cells$log2_dna <<- log(cells$IntDen_NUC_dna, 2)
+    if ("IntDen_ANC_dna" %in% names(cells) & "IntDen_ANC_anchor" %in% names(cells)){
+      log2Name <- readline(prompt = "Both 'DNA' and 'anchor' found. Which should be used for log2_dna? (ANCHOR/dna)? ")
+      if (log2Name == "dna"){
+        cells$log2_dna <<- log(cells$IntDen_ANC_dna, 2)
+      } else {
+        cells$log2_dna <<- log(cells$IntDen_ANC_anchor, 2)
+      }
+    } else if ("IntDen_ANC_dna" %in% names(cells)){
+      cells$log2_dna <<- log(cells$IntDen_ANC_dna, 2)
+    }
+    
     for (i in 1:ncol(cells)){
       if (grepl("Mean_", names(cells)[i])){
         cells[paste0("L", names(cells)[i])] <<- log(cells[,i], 10)
@@ -82,7 +92,7 @@ sirmixaplot <- function(filo,
     #writes the file
     write_csv(cells, thingee)
   }
-  if(!"dna_norm" %in% names(cells) & TRUE %in% grepl("NUC_edu", names(cells))){
+  if(!"dna_norm" %in% names(cells) & TRUE %in% grepl("ANC_edu", names(cells))){
     normalizer()
     #writes the file
     write_csv(cells, thingee)
@@ -104,11 +114,11 @@ joiner <- function(df = cells){
   cat("\n")
   
   #This sets the x and y variables
-  px<-readline(prompt = "px - What parameter is the x-axis: ")
-  xname<-readline(prompt = "What is the name of the x axis: ")
+  px<<-readline(prompt = "px - What parameter is the x-axis: ")
+  xname<<-readline(prompt = "What is the name of the x axis: ")
   cat("\n")
-  py<-readline(prompt = "py - What parameter is the y-axis: ")
-  yname<-readline(prompt = "What is the name of the y axis: ")
+  py<<-readline(prompt = "py - What parameter is the y-axis: ")
+  yname<<-readline(prompt = "What is the name of the y axis: ")
   cat("Working...")
   cat("\n")
   
@@ -206,40 +216,24 @@ modthequad <- function(xi = 1.5,
 #This function will remove certain points from the cells dataframe.
 cull <- function(){
   print(sort(names(cells)))
-  para <<- readline(prompt = "Which parameter should be culled: ")
-  bORs <<- readline(prompt = "Data with values (b)igger, (s)maller, or (=) to the target: ")
-  vale <<- readline(prompt = "What is the target value: ")
-  remover<<-c()
+  para <- readline(prompt = "Which parameter should be culled: ")
+  bORs <- readline(prompt = "Data with values (b)igger, (s)maller, or (=) to the target: ")
+  vale <- readline(prompt = "What is the target value: ")
+
   if (bORs=="b"){
-    for (i in 1:nrow(cells)){
-      checkr <<- cells[i, para]
-      if (checkr > as.numeric(vale)){
-        remover <<- c(remover, i)
-      }
-    }
-    cells<<-cells[-remover,]
+    #print("culling bigger")
+    cells <<- cells[unlist(cells[,para]) < as.numeric(vale),]
   } else if (bORs=="s"){
-    for (i in 1:nrow(cells)){
-      checkr <<- cells[i, para]
-      if (checkr < as.numeric(vale)){
-        remover <<- c(remover, i)
-      }
-    }
-    cells<<-cells[-remover,]
+    #print("culling smaller")
+    cells <<- cells[unlist(cells[,para]) > as.numeric(vale),]
   } else if (bORs=="="){
-    for (i in 1:nrow(cells)){
-      checkr <<- cells[i, para]
-      if (checkr == vale){
-        remover <<- c(remover, i)
-      }
-    }
-    cells<<-cells[-remover,]
+    #print("culling equal")
+    cells <<- cells <<- cells[unlist(cells[,para]) == as.numeric(vale),]
   } else{
     grapho(cells)
   }
   grapho(cells)
   cat("\n")
-  cat("Previous 'cells' has been saved as 'interim'")
 }
 
 #----------------------------------------------------------------------------
@@ -329,35 +323,44 @@ normalizer <- function(){
   #create a column holder (just in case...)
   cells$edu<<-"Negative"
   cells$ploidy<<-"2N"
-  if(T %in% is.na(cells$LMean_NUC_edu)){
-    print(paste0("Detected ", nrow(cells[is.na(cells$LMean_NUC_edu),]), " NA values in LMean_NUC_edu (", round(100*nrow(cells[is.na(cells$LMean_NUC_edu),])/nrow(cells), 2),"% of tota cells)."))
+  if(T %in% is.na(cells$LMean_ANC_edu)){
+    print(paste0("Detected ", nrow(cells[is.na(cells$LMean_ANC_edu),]), " NA values in LMean_ANC_edu (", round(100*nrow(cells[is.na(cells$LMean_ANC_edu),])/nrow(cells), 2),"% of tota cells)."))
     remove_nas <- readline(prompt = "Should these be removed? (Y/n) ")
     if(remove_nas != "n"){
       print("Removing rows with NA values")
-      cells <<- cells[!is.na(cells$LMean_NUC_edu),]
+      cells <<- cells[!is.na(cells$LMean_ANC_edu),]
+    }
+  }
+  if(T %in% is.na(cells$log2_dna)){
+    print(paste0("Detected ", nrow(cells[is.na(cells$log2_dna),]), " NA values in log2_dna (", round(100*nrow(cells[is.na(cells$log2_dna),])/nrow(cells), 2),"% of tota cells)."))
+    remove_nas <- readline(prompt = "Should these be removed? (Y/n) ")
+    if(remove_nas != "n"){
+      print("Removing rows with NA values")
+      cells <<- cells[!is.na(cells$log2_dna),]
     }
   }
   cat("Determining the G1 population now.")
   cat("\n")
   
   #This part calls an EdU negative popuation and creates the normalized values
-  bigBin <- which.max(density(cells[!is.na(cells$LMean_NUC_edu) & !is.infinite(cells$LMean_NUC_edu),]$LMean_NUC_edu)$y)
-  edu_neg <- density(cells[!is.na(cells$LMean_NUC_edu) & !is.infinite(cells$LMean_NUC_edu),]$LMean_NUC_edu)$x[bigBin]+0.1
-  edu_hist <- ggplot(cells, aes(LMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
+  bigBin <- which.max(density(cells[!is.na(cells$LMean_ANC_edu) & !is.infinite(cells$LMean_ANC_edu),]$LMean_ANC_edu)$y)
+  edu_neg <- density(cells[!is.na(cells$LMean_ANC_edu) & !is.infinite(cells$LMean_ANC_edu),]$LMean_ANC_edu)$x[bigBin]+0.1
+  edu_hist <- ggplot(cells, aes(LMean_ANC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
   print(edu_hist)
   g1_good <- readline(prompt = paste0("Is ", format(round(edu_neg, 2), nsmall = 2), " representative of the EdU cutoff? (Y/n) "))
   if (g1_good == "n"){
     edu_neg = as.numeric(readline(prompt = "What value should EdU be cutoff as negative? "))
-    edu_hist <- ggplot(cells, aes(LMean_NUC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
+    edu_hist <- ggplot(cells, aes(LMean_ANC_edu))+geom_density()+geom_vline(xintercept = edu_neg)+xlab("Log EdU")
     print(edu_hist)
   }
   cat(paste0("Using ", format(round(edu_neg, 2), nsmall = 2), " as the EdU cutoff."))
   cat("\n")
 
-  cells[cells$LMean_NUC_edu > edu_neg & !is.na(cells$LMean_NUC_edu),]$edu <<- "Positive"
+  cells[cells$LMean_ANC_edu > edu_neg & !is.na(cells$LMean_ANC_edu),]$edu <<- "Positive"
   
-  eduNegCells <-subset(cells, LMean_NUC_edu < edu_neg)
-  cells$edu_norm <<- (cells$LMean_NUC_edu+1)-mean(eduNegCells$LMean_NUC_edu)
+  eduNegCells <<- subset(cells, LMean_ANC_edu < edu_neg)
+  #print(head(eduNegCells))
+  cells$edu_norm <<- (cells$LMean_ANC_edu+1)-mean(eduNegCells$LMean_ANC_edu)
   
   #This part calls the 2N peak that is EdU-negative   
   bigBin <- which.max(density(eduNegCells$log2_dna)$y)
@@ -411,8 +414,11 @@ normalizer <- function(){
     thingee <<-readline(prompt = 'What is the name of the file: ')
     write_csv(cells, thingee)
   }
-
-  grapho(cells,X = "dna_norm", Y = "edu_norm", Xn = "DNA content (Log 2)", Yn = "EdU content (Log 10)")
+  px <<- "dna_norm"
+  py <<- "edu_norm"
+  xname <<- "DNA content (Log 2)"
+  yname <<- "EdU content (Log 10)"
+  grapho(cells)
 }
 
 
@@ -421,7 +427,7 @@ normalizer <- function(){
 # IMPORTANT - The skewed color must be graphed on the y axis
 # IMPORTANT - This should be obsolete if purgo.R has been run correctly
 compensate <- function(df = cells){
-  # First it generates a datframe to hold point. This is kept open to eventaully morph this into a shape fitting gate
+  # First it generates a datframe to hold point. This is kept open to eventually morph this into a shape fitting gate
   gridIron <- data.frame(X=c(1), Y=c(1))
   cat("Thank you for choosing coompensate(). To begin, lets assign a first point. Be sure the intended line follows the overlap line:")
   # Then you pick a point on the line of the overlapping population
@@ -502,10 +508,10 @@ reMap <- function(df = cells,
                   #   highlight is a vector containing the Number(s) to be highlighted in remapped image
                   highlight = F, 
                   #   X and Y refer to the beginning of the X and Y position names in the dataframe, defaulted to the nuclear geometric position
-                  Y = "X_NUC_", 
-                  X = "Y_NUC_", 
+                  Y = "X_ANC_", 
+                  X = "Y_ANC_", 
                   #   S is the size of the ROI, defaulted to nucelar size
-                  S = "Area_NUC_", 
+                  S = "Area_ANC_", 
                   #   Xn and Yn are the axis names and don't really need to be changed
                   Xn = "X position", 
                   Yn = "Y position",
@@ -660,7 +666,7 @@ nearestN <- function(home=cells, target=cells, label="CellToCell"){
   for (i in 1:nrow(cells)){
     if(cells$Number[i] %in% unique(home$Number)){
       pool <- subset(target, Number != cells$Number[i])
-      pool$distance <- sqrt((pool$X_NUC_dna-cells$X_NUC_dna[i])**2+(pool$Y_NUC_dna-cells$Y_NUC_dna[i])**2)
+      pool$distance <- sqrt((pool$X_ANC_dna-cells$X_ANC_dna[i])**2+(pool$Y_ANC_dna-cells$Y_ANC_dna[i])**2)
       cells[paste0("nearest_",label)][i,] <<- subset(pool, distance == min(pool$distance))$Number[1]
       cells[paste0("nearest_",label, "_distance")][i,] <<- subset(pool, distance == min(pool$distance))$distance[1]
     }
@@ -681,7 +687,7 @@ clusterCount <- function(df = cells, clustPop="tag", center="Positive", edge="Ne
   for (i in 1:nrow(cells)){
     if(cells$Number[i] %in% unique(home$Number)){
       pool <- subset(cells, Number != cells$Number[i])
-      pool$distance <- sqrt((pool$X_NUC_dna-cells$X_NUC_dna[i])**2+(pool$Y_NUC_dna-cells$Y_NUC_dna[i])**2)
+      pool$distance <- sqrt((pool$X_ANC_dna-cells$X_ANC_dna[i])**2+(pool$Y_ANC_dna-cells$Y_ANC_dna[i])**2)
       pool <- pool[order(pool$distance),]
       clusterSize <- 1
       clusterMates <- c(cells$Number[i])

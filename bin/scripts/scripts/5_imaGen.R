@@ -51,12 +51,20 @@ imaGen <- function(directory="./",
                    peri = T,
                    wc = T){
   # The directory is set and a list of CSV's is generated
-  directoryN <- paste0(directory, "/Nuclear/")
-  directoryC <- "WholeCell/"
-  directoryP <- "Perinuclear/"
+  directoryN <- paste0(directory, "/Anchor_extraction/")
+  directoryC <- "NonAnchor_extraction/"
+  directoryP <- "PeriAnchor_extraction/"
   
   setwd(directoryN)
   filez <- list.files(pattern = ".csv")
+  if ("anchor.csv" %in% filez){
+    anchorName <- "anchor"
+  } else if ("dna.csv" %in% filez){
+    anchorName <- "dna"
+  } else {
+    print(filez)
+    anchorName <- readline(prompt = "Anchor file not detected. Which file should be the anchor?")
+  }
   # The first file is opened to serve as a template
   if(!grepl("_all.csv", filez[1])){
     cells <- read.table(filez[1], sep = ",", header = TRUE)
@@ -78,7 +86,7 @@ imaGen <- function(directory="./",
   }
   
   cells$Area <- cells$Area*100
-  names(cells) <- paste0(names(cells), "_NUC_", colo)
+  names(cells) <- paste0(names(cells), "_ANC_", colo)
   # The first column with designated as the cell number which is dictated by the nucleus and is consistent across all downstream applications
   names(cells)[1] <- "Number"
   # The label is removed as this isn't required after 'colo' labeling
@@ -99,13 +107,13 @@ imaGen <- function(directory="./",
       } else{
         colo <- substr(i, 1, nchar(i)-4)
       }
-      names(interim) <- paste0(names(interim), "_NUC_", colo)
+      names(interim) <- paste0(names(interim), "_ANC_", colo)
       cells <- cbind(cells, interim[,4:8], interim[,11:12], interim[,15:16])
     }
   }
   filnam <- yL
-  write.csv(cells, file = paste0(filnam,"_NUC_all.csv"), row.names = FALSE)
-  xoo <- list.files(pattern = "dna")
+  write.csv(cells, file = paste0(filnam,"_ANC_all.csv"), row.names = FALSE)
+  xoo <- list.files(pattern = anchorName)
   setwd("../")
   
 #Now that the nuclear data is collected, the ROI data will be parsed and added
@@ -120,9 +128,9 @@ imaGen <- function(directory="./",
       pathy <- getwd()
       cat(paste0("Current directory is ", pathy))
       cat("\n")
-      tagger <- readline(prompt = "What is the path to the dna file: ")
+      tagger <- readline(prompt = "What is the path to the anchor file: ")
     } else{
-      tagger <- paste0("../Nuclear/", xoo)
+      tagger <- paste0("../Anchor_extraction/", xoo)
     }
     # Every ROI is designated a nucleus number
     for (j in filez){
@@ -258,7 +266,7 @@ imaGen <- function(directory="./",
       cat("\n")
       tagger <- readline(prompt = "What is the path to the dna file: ")
     } else{
-      tagger <- paste0("../Nuclear/", xoo)
+      tagger <- paste0("../Anchor_extraction/", xoo)
     }
     # Every ROI is designated a nucleus number
     for (j in filez){
@@ -368,12 +376,12 @@ imaGen <- function(directory="./",
   # This ends the PERI_all collection
 
   #Now that we have a nuclear dataset and a WC dataset, we might as well put it all together...
-  nucka <- paste0("Nuclear/", filnam, "_NUC_all.csv")
+  nucka <- paste0("Anchor_extraction/", filnam, "_ANC_all.csv")
   nuke <- read.csv(nucka)
   if(wc==T & peri==T){
-    wucka <- paste0("WholeCell/", filnam, "_WC_all.csv")
+    wucka <- paste0("NonAnchor_extraction/", filnam, "_WC_all.csv")
     wuke <- read.csv(wucka)
-    pucka <- paste0("Perinuclear/", filnam, "_PN_all.csv")
+    pucka <- paste0("PeriAnchor_extraction/", filnam, "_PN_all.csv")
     puke <- read.csv(pucka)
     cells <- cbind(nuke, puke[,22:ncol(puke)], wuke[,22:ncol(wuke)])
   }
@@ -414,7 +422,7 @@ imaGen <- function(directory="./",
     print("The first match will be used but it is recommended that your ammend the schema file to avoid other issues")
     hit <- hit[1,]
   }
-  for (ab in 6:ncol(hit)){
+  for (ab in 7:ncol(hit)){
     cells[names(hit)[ab]] <- hit[ab]
     if (peri==T){
       #print("adding peri meta")
@@ -449,13 +457,13 @@ for (xL in xList){
       if(!grepl("_all.csv", yL) & yL != "Thumbs.db"){
         setwd(paste0(yL, "/PNGS/"))
         checkList <- list.files()
-        if("Perinuclear" %in% checkList){
+        if("PeriAnchor_extraction" %in% checkList){
           periGo <- TRUE
         }
-        if("WholeCell" %in% checkList){
+        if("NonAnchor_extraction" %in% checkList){
           wcGo <- TRUE
         }
-        if (length(list.files(path = "Nuclear/", pattern = "NUC_all.csv")) == 0){
+        if (length(list.files(path = "Anchor_extraction/", pattern = "NUC_all.csv")) == 0){
           imaGen(peri = periGo,
                  wc = wcGo)
           print(paste0("Combining data from image ", yL))

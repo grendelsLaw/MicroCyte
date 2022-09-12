@@ -53,7 +53,7 @@ explore <- function(fileName = "data/experiment.csv",
   # We read the schema to get metadata so we don't have to get it later
   schema <- read.csv(scheme)
   # store the meta names
-  metaNames <- names(schema)[6:(length(names(schema))-1)]
+  metaNames <- names(schema)[7:(length(names(schema))-1)]
   # Add the metadata to the final dataset row by row
   for (i in metaNames){
     datum[i] <- "Holder"
