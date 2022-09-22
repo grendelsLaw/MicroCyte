@@ -428,23 +428,28 @@ normalizer <- function(){
 # IMPORTANT - This should be obsolete if purgo.R has been run correctly
 compensate <- function(df = cells){
   # First it generates a datframe to hold point. This is kept open to eventually morph this into a shape fitting gate
-  gridIron <- data.frame(X=c(1), Y=c(1))
+  #gridIron <<- data.frame(X=c(1,1), Y=c(1,1))
   cat("Thank you for choosing coompensate(). To begin, lets assign a first point. Be sure the intended line follows the overlap line:")
   # Then you pick a point on the line of the overlapping population
-  gridIron$X[1] <- as.numeric(readline(prompt = "What is the x-value of the first point? "))
-  gridIron$Y[1] <- as.numeric(readline(prompt = "What is the y-value of the first point? "))
+  pointOne_x <- as.numeric(readline(prompt = "What is the x-value of the first point? "))
+  pointOne_y <- as.numeric(readline(prompt = "What is the y-value of the first point? "))
+  print(pointOne_x)
+  print(pointOne_y)
+  pointOne <- data.frame(X=pointOne_x, Y=pointOne_y)
+  print(pointOne)
   cat("\n")
-  print(qq+geom_point(data = gridIron, aes(x=gridIron$X, y=gridIron$Y, color = "red", size = 16)))
+  print(qq+geom_point(data = pointOne, aes(x=X, y=Y, color = "red", size = 16)))
   cat(paste0("Great, I have added that point. Now lets move on to the second point"))
-  gridIron <- rbind(gridIron, c(1, 1))
+
   # Then you pick a second point
-  gridIron$X[2] <- as.numeric(readline(prompt = "What is the x-value of the second point? "))
-  gridIron$Y[2] <- as.numeric(readline(prompt = "What is the y-value of the second point? "))
-  print(qq+geom_point(data = gridIron, aes(x=gridIron$X, y=gridIron$Y, color = "red", size = 16))+
-          geom_segment(aes(x = gridIron[1,1], y = gridIron[1,2], xend = gridIron[2,1], yend = gridIron[2,2], color = "red", size=16)))
-  # Asks if these two points lie on the 
-  #print(gridIron)
-  yORn <<- readline(prompt = "Does this look right (y/n)? ")
+  pointOne_x <- as.numeric(readline(prompt = "What is the x-value of the second point? "))
+  pointOne_y <- as.numeric(readline(prompt = "What is the y-value of the second point? "))
+  pointTwo <- data.frame(X=pointOne_x, Y=pointOne_y)
+  pointOne <- rbind(pointOne, pointTwo)
+
+  print(qq+geom_point(data = pointOne, aes(x=X, y=Y, color = "red", size = 16)))
+
+  yORn <- readline(prompt = "Does this look right (Y/n)? ")
   if (yORn == "n"){
     cat("Sorry, lets try that again.")
     cat("\n")
@@ -452,16 +457,16 @@ compensate <- function(df = cells){
   } else {
     cat("Excellent, generating the linear equation now:")
     cat("\n")
-    rise <- gridIron[2,2]-gridIron[1,2]
-    run <- gridIron[2,1]-gridIron[1,1]
+    rise <- pointOne[2,2]-pointOne[1,2]
+    run <- pointOne[2,1]-pointOne[1,1]
     slop <- rise/run
-    yint <- gridIron[1,2]-(gridIron[1,1]*slop)
-    print(qq+geom_point(data = gridIron, aes(x=gridIron$X, y=gridIron$Y, color = "red", size = 16))+
+    yint <- pointOne[1,2]-(pointOne[1,1]*slop)
+    print(qq+geom_point(data = pointOne, aes(x=X, y=Y, color = "red", size = 16))+
             geom_abline(slope = slop, intercept = yint, size = 2, color = "blue"))
     cat(paste0("Slope has been determined to be: ", slop))
     cat("\n")
     cat(paste0("Y-intercept has been determined to be: ", yint))
-    yORn <- readline(prompt = "Does this look right (y/n)? ")
+    yORn <- readline(prompt = "Does this look right (Y/n)? ")
     if (yORn == "n"){
       cat("Sorry, lets try that again.")
       cat("\n")
@@ -472,7 +477,7 @@ compensate <- function(df = cells){
       check[py] <- check[py]-(slop*check[px]+yint)
       cat("Regraphing:")
       grapho(check)
-      yORn <- readline(prompt = "Does this look right (y/n)? ")
+      yORn <- readline(prompt = "Does this look right (Y/n)? ")
       if (yORn == "n"){
         cat("Sorry, lets try that again.")
         cat("\n")
@@ -494,6 +499,7 @@ compensate <- function(df = cells){
           }
           cat("Means recalculated. Thank you for your patience and patronage.")
           write_csv(cells, thingee)
+
         }
       }
     }
