@@ -1,7 +1,7 @@
 //YggData is the ThompsonLab ImageJ macro for single cell analysis of IFA images
 anchorName="dna";
-anchorSize="30-300";
-anchorMinThreshold=35;
+anchorSize="30-400";
+anchorMinThreshold=45;
 circularity=0.75
 
 runPeri=false;
@@ -31,8 +31,8 @@ wcTarget5Size="1-Infinty";
 wcTargetDefaultSize="1-Infinty";
 
 //	This macro first asks you to pick a nucleus picture to generate ROIs from
-//	It then uses these ROIs to determine the raw NUCLEAR data from each image within the directory, and stores these CSVs in a newly created 'Nuclear' folder
-//	Ygg will then back out and generate ROIs for each image independent of nuclear localization, and store these CSVs in a newly created 'WholeCell' folder
+//	It then uses these ROIs to determine the raw Anchor_extraction data from each image within the directory, and stores these CSVs in a newly created 'Anchor_extraction' folder
+//	Ygg will then back out and generate ROIs for each image independent of Anchor_extraction localization, and store these CSVs in a newly created 'NonAnchor_extraction' folder
 //	Following this macro, the imaGen() script to combine all the data into a new dataset in which each row is a single cell
 
 // First, lets make sure the measurements are set for appropriate analyses. If changes are made here, they will not be included in the default imaGen() compilation
@@ -64,7 +64,7 @@ for (i=0; i < pList.length; i++){
 				setOption("BlackBackground", false);
 				run("Convert to Mask");
 //The ROIs are rounded and split
-// If you are running a high magnification (>10x) DNA image, it is recommended that you comment this out to avoid nuclear image fragementation
+// If you are running a high magnification (>10x) DNA image, it is recommended that you comment this out to avoid Anchor_extraction image fragementation
 				run("Watershed");
 //The ROIs are generated
 				run("Analyze Particles...", "size="+anchorSize+" add include exclude circularity="+circularity+"-1.00");
@@ -72,10 +72,10 @@ for (i=0; i < pList.length; i++){
 				close();			
 			
 // Then you generate a list of the images in that directory:
-				if(!File.isDirectory(pathway+"/Nuclear")){
-					File.makeDirectory(pathway+"/Nuclear");
+				if(!File.isDirectory(pathway+"/Anchor_extraction")){
+					File.makeDirectory(pathway+"/Anchor_extraction");
 				};
-				inputn = pathway+"/Nuclear/";
+				inputn = pathway+"/Anchor_extraction/";
 				for (k=0; k < iList.length; k++){
 					if (endsWith(iList[k], ".png") & !startsWith(iList[k], "overlay")){
 						open(pathway+"/"+iList[k]);
@@ -90,10 +90,10 @@ for (i=0; i < pList.length; i++){
 			
 				if(runPeri){
 // Now the ROIs re-drawn and are increased by an enlargment factor
-					if(!File.isDirectory(pathway+"/Perinuclear")){
-						File.makeDirectory(pathway+"/Perinuclear");
+					if(!File.isDirectory(pathway+"/PeriAnchor_extraction")){
+						File.makeDirectory(pathway+"/PeriAnchor_extraction");
 					};
-					inputp = pathway+"/Perinuclear/";
+					inputp = pathway+"/PeriAnchor_extraction/";
 					open(roi_image);
 					run("8-bit");
 					setAutoThreshold("Default dark");
@@ -131,13 +131,13 @@ for (i=0; i < pList.length; i++){
 					run("Close");
 				};
 			
-//Now that the nuclear data is collected, Ygg will collected the nuclear indepedent data
+//Now that the Anchor_extraction data is collected, Ygg will collected the Anchor_extraction indepedent data
 //Since the list of images will be the same, it simply iterates through each image and collects the total ROI pixel data
 				if(runWC){
-					if(!File.isDirectory(pathway+"/WholeCell")){
-						File.makeDirectory(pathway+"/WholeCell");
+					if(!File.isDirectory(pathway+"/NonAnchor_extraction")){
+						File.makeDirectory(pathway+"/NonAnchor_extraction");
 					};
-					inputc = pathway+"/WholeCell/";
+					inputc = pathway+"/NonAnchor_extraction/";
 					for (k=0; k < iList.length; k++){
 						if (endsWith(iList[k], ".png") & !startsWith(iList[k], "overlay")){
 							open(pathway+"/"+iList[k]);
