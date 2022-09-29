@@ -1,4 +1,4 @@
-explore <- function(fileName = "data/experiment.csv",
+explore <- function(fileName = cells,
                     sortBy = "name_id",
                     categories = T,
                     cellCycle = T,
