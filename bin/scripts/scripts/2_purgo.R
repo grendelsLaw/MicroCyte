@@ -174,6 +174,7 @@ alakazam <- function(df = "QC/sampledPixels.csv",
 # }
 
 runType <- readline(prompt = "What should the runtype be (auto/manual/full/none): ")
+genQC <- readline(prompt = "should QC graphs be generated (Y/n): ")
 scheme <- names(read.csv("schema.csv"))[2:5]
 setwd("files/")
 dirz <- list.files()
@@ -187,20 +188,29 @@ for (ab in dirz){
        if(!"originals" %in% list.files()){
          print(paste0("Running purgo on file ", ab, " picture ", bc, "."))
          abra()
+         kadabra()
          if(runType == "auto"){
-           kadabra()
            alakazam()
          } else if (runType == "manual"){
-           kadabra()
            print(scheme)
            oLapper <- readline(prompt = "Which is the overlapper: ")
            oLappee <- readline(prompt = "Which is the overlappee: ")
            alakazam(overlapper = oLapper, overlappee = oLappee)
          } else if (runType == "full"){
-           kadabra()
            alakazam(overlapper = scheme[4], overlappee = scheme[3], color = "red")
            alakazam(overlapper = scheme[3], overlappee = scheme[2], color = "blue")
            alakazam(overlapper = scheme[2], overlappee = scheme[1], color = "green")
+         }
+         if (genQC!="n"){
+           sampling <- read.csv("QC/sampledPixels.csv")
+           for (i in names(sampling)[3:ncol(sampling)]){
+             for (j in names(sampling)[3:ncol(sampling)]){
+               if (!paste0(j, "by", i, ".png") %in% list.files(path = "QC/" & i != j)){
+                 draft <- ggscatter(data = sampling, x = i, y = j)
+                 ggsave(paste0(i, "by", j, ".png"), dpi = 300, width = 10, height = 10, units = "cm")
+               }
+             }
+           }
          }
        }
        setwd("../")
