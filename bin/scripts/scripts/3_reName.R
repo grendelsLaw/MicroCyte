@@ -52,33 +52,35 @@ reset_names <- function(){
   xList <- list.files(path = "files/")
   setwd("files")
   for (a in xList){
-    if (!grepl(".ijm", x = a)){
+    if (!grepl(".ijm", x = a) & !grepl(".csv", x = a)){
       setwd(a)
       aList <- list.files()
       for (aL in aList){
-        setwd(aL)
-        check <- list.files()
-        if ("originals" %in% check){
-          doubleCheck <- list.files(path = "originals/")
-          if (length(doubleCheck) > 0){
-            tifList <- list.files(pattern = "tif")
-            for (tif in tifList){
-              file.remove(tif)
-            }
-            dirList <- list.files()
-            for (dir in dirList){
-              if (dir != "originals"){
-                unlink(dir, recursive = T)
+        if(!grepl(".ijm", x = aL) & !grepl(".csv", x = aL)){
+          setwd(aL)
+          check <- list.files()
+          if ("originals" %in% check){
+            doubleCheck <- list.files(path = "originals/")
+            if (length(doubleCheck) > 0){
+              tifList <- list.files(pattern = "tif")
+              for (tif in tifList){
+                file.remove(tif)
               }
+              dirList <- list.files()
+              for (dir in dirList){
+                if (dir != "originals"){
+                  unlink(dir, recursive = T)
+                }
+              }
+              oriFiles <- list.files(path = "originals/")
+              for (ori in oriFiles){
+                file.copy(from = paste0("originals/", ori), to = paste0("./", ori))
+              }
+              unlink("originals", recursive = T)
             }
-            oriFiles <- list.files(path = "originals/")
-            for (ori in oriFiles){
-              file.copy(from = paste0("originals/", ori), to = paste0("./", ori))
-            }
-            unlink("originals", recursive = T)
           }
+          setwd("../")
         }
-        setwd("../")
       }
     }
     setwd("../")

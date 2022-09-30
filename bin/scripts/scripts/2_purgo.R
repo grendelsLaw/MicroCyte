@@ -6,6 +6,7 @@ args = commandArgs(trailingOnly=TRUE)
 suppressPackageStartupMessages(library(imager))
 suppressPackageStartupMessages(library(magick))
 suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(ggpubr))
 
 # This first spell will convert all the tifs to png using the magick functions,
 # which is required as an input for the imager functions
@@ -179,11 +180,11 @@ scheme <- names(read.csv("schema.csv"))[2:5]
 setwd("files/")
 dirz <- list.files()
 for (ab in dirz){
- if(!grepl("ijm", ab)){
+ if(!grepl("ijm", ab) & !grepl(".csv", ab)){
    setwd(ab)
    filz <- list.files()
    for(bc in filz){
-     if(bc != "images" & bc != "Thumbs.db"){
+     if(bc != "images" & bc != "Thumbs.db" & !grepl(".csv", bc)){
        setwd(bc)
        if(!"originals" %in% list.files()){
          print(paste0("Running purgo on file ", ab, " picture ", bc, "."))
@@ -205,9 +206,9 @@ for (ab in dirz){
            sampling <- read.csv("QC/sampledPixels.csv")
            for (i in names(sampling)[3:ncol(sampling)]){
              for (j in names(sampling)[3:ncol(sampling)]){
-               if (!paste0(j, "by", i, ".png") %in% list.files(path = "QC/" & i != j)){
+               if (!paste0(j, "by", i, ".png") %in% list.files(path = "QC") & i != j){
                  draft <- ggscatter(data = sampling, x = i, y = j)
-                 ggsave(paste0(i, "by", j, ".png"), dpi = 300, width = 10, height = 10, units = "cm")
+                 ggsave(paste0("QC/",i, "by", j, ".png"), dpi = 300, width = 10, height = 10, units = "cm")
                }
              }
            }
