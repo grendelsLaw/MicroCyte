@@ -62,7 +62,6 @@ imaGen <- function(directory="./",
   } else if ("dna.csv" %in% filez){
     anchorName <- "dna"
   } else {
-    print(filez)
     anchorName <- readline(prompt = "Anchor file not detected. Which file should be the anchor?")
   }
   # The first file is opened to serve as a template
@@ -386,12 +385,12 @@ imaGen <- function(directory="./",
     cells <- cbind(nuke, puke[,22:ncol(puke)], wuke[,22:ncol(wuke)])
   }
   if(wc == T){
-    wucka <- paste0("WholeCell/", filnam, "_WC_all.csv")
+    wucka <- paste0("NonAnchor_extraction/", filnam, "_WC_all.csv")
     wuke <- read.csv(wucka)
     cells <- cbind(nuke, wuke[,22:ncol(wuke)])
   }
   if(peri==T){
-    pucka <- paste0("Perinuclear/", filnam, "_PN_all.csv")
+    pucka <- paste0("PeriAnchor_extraction/", filnam, "_PN_all.csv")
     puke <- read.csv(pucka)
     cells <- cbind(nuke, puke[,22:ncol(puke)])
   }
@@ -400,9 +399,9 @@ imaGen <- function(directory="./",
     thinkTank <- names(cells)[grepl("PERI_Area", names(cells))]
     for (z in thinkTank){
       zim <- strsplit(z, "Area")[[1]][2]
-      tic <- names(cells)[grepl("Area_NUC", names(cells))][1]
+      tic <- names(cells)[grepl("Area_ANC", names(cells))][1]
       cells[paste0("PERI_SubArea", zim)] <- cells[paste0("PERI_Area", zim)]-cells[tic]
-      tic <- paste0("IntDen_NUC", zim)
+      tic <- paste0("IntDen_ANC", zim)
       cells[paste0("PERI_SubIntDen", zim)] <- cells[paste0("PERI_IntDen", zim)]-cells[tic]
       cells[paste0("PERI_SubMean", zim)] <- (100*cells[paste0("PERI_SubIntDen", zim)])/cells[paste0("PERI_SubArea", zim)]
     }
