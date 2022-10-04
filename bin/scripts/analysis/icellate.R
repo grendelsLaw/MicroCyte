@@ -9,7 +9,7 @@ icellate <- function(targetCells,
                      verifySize = T,
                      fuse = F,
                      verifyImage = "overlay.png",
-                     randomize = F,
+                     randomize = T,
                      samplingNumber = 5,
                      lineAnalyses = T,
                      numberOfLines = 2,
@@ -63,17 +63,17 @@ icellate <- function(targetCells,
           interim <- as.data.frame(interim)
           
           #First, lets figure out how big the area of the picture needs to be based on the imageType parameter
-          areaName <- names(cells)[grepl("^Area_NUC", names(targetCell))]
+          areaName <- names(cells)[grepl("^Area_ANC", names(targetCell))]
           cellLength <- dMultiplier*round(sqrt(targetCell[areaName]/pi))
           cellLength <- as.integer(round(cellLength))
           
           # Now we identify the XY coordinate of the cell and trim the dataframe data to fit the calculated cellLength
-          XName <- names(cells)[grepl("^X_NUC", names(targetCell))]
+          XName <- names(cells)[grepl("^X_ANC", names(targetCell))]
           XPos <- as.integer(round(targetCell[XName]))
           XMin <- round(XPos-cellLength)
           XMax <- round(XPos+cellLength)
           
-          YName <- names(cells)[grepl("^Y_NUC", names(targetCell))]
+          YName <- names(cells)[grepl("^Y_ANC", names(targetCell))]
           YPos <- as.integer(round(targetCell[YName]))
           YMin <- round(YPos-cellLength)
           YMax <- round(YPos+cellLength)
@@ -108,17 +108,17 @@ icellate <- function(targetCells,
         interim <- as.data.frame(interim_i)
 
         #First, lets figure out how big the area of the picture needs to be based on the imageType parameter
-        areaName <- names(cells)[grepl("^Area_NUC", names(targetCell))]
+        areaName <- names(cells)[grepl("^Area_ANC", names(targetCell))]
         cellLength <- dMultiplier*round(sqrt(targetCell[areaName]/pi))
         cellLength <- as.integer(round(cellLength))
         
         # Now we identify the XY coordinate of the cell and trim the dataframe data to fit the calculated cellLength
-        XName <- names(cells)[grepl("^X_NUC", names(targetCell))]
+        XName <- names(cells)[grepl("^X_ANC", names(targetCell))]
         XPos <- as.integer(round(targetCell[XName]))
         XMin <- round(XPos-cellLength)
         XMax <- round(XPos+cellLength)
         
-        YName <- names(cells)[grepl("^Y_NUC", names(targetCell))]
+        YName <- names(cells)[grepl("^Y_ANC", names(targetCell))]
         YPos <- as.integer(round(targetCell[YName]))
         YMin <- round(YPos-cellLength)
         YMax <- round(YPos+cellLength)
