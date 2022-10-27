@@ -52,9 +52,9 @@ imaGen <- function(directory="./",
                    wc = T){
   # The directory is set and a list of CSV's is generated
   directoryN <- paste0(directory, "/Anchor_extraction/")
-  directoryC <- "NonAnchor_extraction/"
-  directoryP <- "PeriAnchor_extraction/"
-  
+  directoryC <- paste0(directory, "NonAnchor_extraction/")
+  directoryP <- paste0(directory, "PeriAnchor_extraction/")
+
   setwd(directoryN)
   filez <- list.files(pattern = ".csv")
   if ("anchor.csv" %in% filez){

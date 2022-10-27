@@ -136,12 +136,12 @@ explore <- function(fileName = cells,
       datum[datum$name_id ==a,]$sPhase <- 100*nrow(set[set$edu == "Positive",])/nrow(set)
       datum[datum$name_id ==a,]$G1 <- 100*nrow(set[set$edu == "Negative" & set$ploidy == "2N",])/nrow(set)
       datum[datum$name_id ==a,]$G2 <- 100*nrow(set[set$edu == "Negative" & set$ploidy == "4N",])/nrow(set)
-      datum[datum$name_id ==a,]$re_sPhase <- 100*nrow(set[set$edu == "Positive" & set$ploidy == ">4N",])/nrow(set)
-      datum[datum$name_id ==a,]$G3 <- 100*nrow(set[set$edu == "Negative" & set$ploidy == ">4N",])/nrow(set)
-      datum[datum$name_id ==a,]$S_MFI <- mean(set[set$edu == "Positive" & set$ploidy != ">4N",]$edu_norm)
-      datum[datum$name_id ==a,]$S_MDI <- mean(set[set$edu == "Positive" & set$ploidy != ">4N",]$dna_norm)
-      datum[datum$name_id ==a,]$rS_MFI <- mean(set[set$edu == "Positive" & set$ploidy == ">4N",]$edu_norm)
-      datum[datum$name_id ==a,]$rS_MDI <- mean(set[set$edu == "Positive" & set$ploidy == ">4N",]$dna_norm)
+      datum[datum$name_id ==a,]$re_sPhase <- 100*nrow(set[set$edu == "Positive" & set$ploidy != "2N",])/nrow(set)
+      datum[datum$name_id ==a,]$G3 <- 100*nrow(set[set$edu == "Negative" & set$ploidy != "2N",])/nrow(set)
+      datum[datum$name_id ==a,]$S_MFI <- mean(set[set$edu == "Positive" & set$ploidy == "2N",]$edu_norm)
+      datum[datum$name_id ==a,]$S_MDI <- mean(set[set$edu == "Positive" & set$ploidy == "2N",]$dna_norm)
+      datum[datum$name_id ==a,]$rS_MFI <- mean(set[set$edu == "Positive" & set$ploidy != "2N",]$edu_norm)
+      datum[datum$name_id ==a,]$rS_MDI <- mean(set[set$edu == "Positive" & set$ploidy != "2N",]$dna_norm)
     }
   }
   
