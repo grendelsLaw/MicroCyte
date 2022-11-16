@@ -1,7 +1,31 @@
 defaultW <- getOption("warn")
 options(warn = -1)
 partial_amount <- 1000
+#--------------------------------------
+# First, Lets check if all the packages are installed
+recPackages <- c("ggplot2",
+                 "ggpubr",
+                 "ggtern",
+                 "tidyverse",
+                 "MASS",
+                 "viridis",
+                 "Rtsne",
+                 "stringr",
+                 "imager",
+                 "magick",
+                 "RecordLinkage",
+                 "hash",
+                 "plotly",
+                 "Rtsne")
 
+
+installedPackages <- installed.packages()
+for (i in recPackages){
+  if(!i %in% recPackages){
+    install.packages(i)
+  }
+}
+#----------------------------------------
 scripts <- data.frame(
   "Number" = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
   "Script_Name" = c("Setup",

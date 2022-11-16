@@ -22,7 +22,7 @@ concato <- function(dirz = "files",
       periGo <- FALSE
       yList <- list.files()
       for(yL in yList){
-        print(yL)
+        #print(yL)
         if(!grepl(".csv",yL) & !grepl(".pdf", yL) & yL != "Thumbs.db"){
           setwd(yL)
           zList <- paste0(yL, "_WN_all.csv")
@@ -34,14 +34,14 @@ concato <- function(dirz = "files",
             interim <- read.csv(zList)
             for(i in names(cells)[!names(cells) %in% names(interim)]){
               interim[i] <- 0
-              print(i)
+              #print(i)
             }
             for(i in names(interim)[!names(interim) %in% names(cells)]){
               cells[i] <- 0
             }
             
             cells <- rbind(cells, interim)
-            print("Cells bound")
+            #print("Cells bound")
           }
           
           if(rList %in% list.files()){
@@ -52,7 +52,7 @@ concato <- function(dirz = "files",
               rinterim <- read.csv(rList)
               for(i in names(rois)[!names(rois) %in% names(rinterim)]){
                 rinterim[i] <- 0
-                print(i)
+               # print(i)
               }
               for(i in names(rinterim)[!names(rinterim) %in% names(rois)]){
                 rois[i] <- 0
@@ -61,7 +61,7 @@ concato <- function(dirz = "files",
               rois <- rbind(rois, rinterim)
             }
           }
-          print("ROIs bound")
+          #print("ROIs bound")
           
           if(pList %in% list.files()){
             periGo <- TRUE
@@ -77,7 +77,7 @@ concato <- function(dirz = "files",
               }
               
               peris <- rbind(peris, pinterim)
-              print("Peris bound")
+              #print("Peris bound")
             }
           }
 
