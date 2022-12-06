@@ -8,6 +8,7 @@ icellate <- function(targetCells,
                      dMultiplier = 0.3,
                      verifySize = T,
                      fuse = F,
+                     heatIntensity = F,
                      verifyImage = "overlay.png",
                      randomize = T,
                      samplingNumber = 5,
@@ -58,44 +59,48 @@ icellate <- function(targetCells,
       #Now to interate through the images, and them as a dataframe
       
       if (sizeVerified == F & verifySize == T){
-        while (TRUE){
-          interim <- load.image(verifyImage)
-          interim <- as.data.frame(interim)
-          
-          #First, lets figure out how big the area of the picture needs to be based on the imageType parameter
-          areaName <- names(cells)[grepl("^Area_ANC", names(targetCell))]
-          cellLength <- dMultiplier*round(sqrt(targetCell[areaName]/pi))
-          cellLength <- as.integer(round(cellLength))
-          
-          # Now we identify the XY coordinate of the cell and trim the dataframe data to fit the calculated cellLength
-          XName <- names(cells)[grepl("^X_ANC", names(targetCell))]
-          XPos <- as.integer(round(targetCell[XName]))
-          XMin <- round(XPos-cellLength)
-          XMax <- round(XPos+cellLength)
-          
-          YName <- names(cells)[grepl("^Y_ANC", names(targetCell))]
-          YPos <- as.integer(round(targetCell[YName]))
-          YMin <- round(YPos-cellLength)
-          YMax <- round(YPos+cellLength)
-          
-          # Now we remove all the pixels we don't care about
-          interim <- interim[interim$x >= XMin & interim$x <= XMax,]
-          interim <- interim[interim$y >= YMin & interim$y <= YMax,]
-          
-          #Now to reset the corrdinates
-          interim$x <- 1+interim$x-min(interim$x)
-          interim$y <- 1+interim$y-min(interim$y)
-          
-          # Now to convert the dataframe to an image object and save the image
-          newPlot <- suppressWarnings(as.cimg(interim))
-          plot(newPlot)
-          print(paste0("dMultiplier is currently set to: ", dMultiplier))
-          checkBox <- readline(prompt = "Does this look like the appropriate size (Y/n)? ")
-          if (checkBox == "n"){
-            dMultiplier <- as.numeric(readline(prompt = "What should the new dMultiplier be: "))
-          } else{
-            sizeVerified <- T
-            break
+        if (!verifyImage %in% list.files(pattern = ".png")){
+          print("The indicated file for size verification was not found. Defaulting to general sizing...")
+        } else {
+          while (TRUE){
+            interim <- load.image(verifyImage)
+            interim <- as.data.frame(interim)
+            
+            #First, lets figure out how big the area of the picture needs to be based on the imageType parameter
+            areaName <- names(cells)[grepl("^Area_ANC", names(targetCell))]
+            cellLength <- dMultiplier*round(sqrt(targetCell[areaName]/pi))
+            cellLength <- as.integer(round(cellLength))
+            
+            # Now we identify the XY coordinate of the cell and trim the dataframe data to fit the calculated cellLength
+            XName <- names(cells)[grepl("^X_ANC", names(targetCell))]
+            XPos <- as.integer(round(targetCell[XName]))
+            XMin <- round(XPos-cellLength)
+            XMax <- round(XPos+cellLength)
+            
+            YName <- names(cells)[grepl("^Y_ANC", names(targetCell))]
+            YPos <- as.integer(round(targetCell[YName]))
+            YMin <- round(YPos-cellLength)
+            YMax <- round(YPos+cellLength)
+            
+            # Now we remove all the pixels we don't care about
+            interim <- interim[interim$x >= XMin & interim$x <= XMax,]
+            interim <- interim[interim$y >= YMin & interim$y <= YMax,]
+            
+            #Now to reset the corrdinates
+            interim$x <- 1+interim$x-min(interim$x)
+            interim$y <- 1+interim$y-min(interim$y)
+            
+            # Now to convert the dataframe to an image object and save the image
+            newPlot <- suppressWarnings(as.cimg(interim))
+            plot(newPlot)
+            print(paste0("dMultiplier is currently set to: ", dMultiplier))
+            checkBox <- readline(prompt = "Does this look like the appropriate size (Y/n)? ")
+            if (checkBox == "n"){
+              dMultiplier <- as.numeric(readline(prompt = "What should the new dMultiplier be: "))
+            } else{
+              sizeVerified <- T
+              break
+            }
           }
         }
       }
@@ -139,6 +144,177 @@ icellate <- function(targetCells,
         newPlot <- suppressWarnings(as.cimg(interim))
         newPlot <- cimg2magick(newPlot, rotate = T)
         image_write(newPlot, path = i, format = "png")
+        
+        if (heatIntensity){
+          oldImage <- load.image(i)
+          thick <- as.data.frame(oldImage)
+          check_gray <- as.data.frame(grayscale(oldImage))
+          
+          check_gray$R <- 0
+          check_gray$G <- 0
+          check_gray$B <- 0
+          
+          setter <- (max(check_gray$value)-min(check_gray$value))/19
+          thresher <- 0
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 0
+            check_gray[check_gray$value > thresher,]$G <- 0
+            check_gray[check_gray$value > thresher,]$B <- 4
+          }
+          
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 8
+            check_gray[check_gray$value > thresher,]$G <- 5
+            check_gray[check_gray$value > thresher,]$B <- 29
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 24
+            check_gray[check_gray$value > thresher,]$G <- 12
+            check_gray[check_gray$value > thresher,]$B <- 60
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 47
+            check_gray[check_gray$value > thresher,]$G <- 10
+            check_gray[check_gray$value > thresher,]$B <- 91
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 69
+            check_gray[check_gray$value > thresher,]$G <- 10
+            check_gray[check_gray$value > thresher,]$B <- 105
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 92
+            check_gray[check_gray$value > thresher,]$G <- 18
+            check_gray[check_gray$value > thresher,]$B <- 110
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 113
+            check_gray[check_gray$value > thresher,]$G <- 25
+            check_gray[check_gray$value > thresher,]$B <- 110
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 135
+            check_gray[check_gray$value > thresher,]$G <- 33
+            check_gray[check_gray$value > thresher,]$B <- 107
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 155
+            check_gray[check_gray$value > thresher,]$G <- 41
+            check_gray[check_gray$value > thresher,]$B <- 100
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 177
+            check_gray[check_gray$value > thresher,]$G <- 50
+            check_gray[check_gray$value > thresher,]$B <- 90
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 196
+            check_gray[check_gray$value > thresher,]$G <- 60
+            check_gray[check_gray$value > thresher,]$B <- 78
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 215
+            check_gray[check_gray$value > thresher,]$G <- 75
+            check_gray[check_gray$value > thresher,]$B <- 63
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 229
+            check_gray[check_gray$value > thresher,]$G <- 92
+            check_gray[check_gray$value > thresher,]$B <- 48
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 241
+            check_gray[check_gray$value > thresher,]$G <- 113
+            check_gray[check_gray$value > thresher,]$B <- 31
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 248
+            check_gray[check_gray$value > thresher,]$G <- 135
+            check_gray[check_gray$value > thresher,]$B <- 14
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 252
+            check_gray[check_gray$value > thresher,]$G <- 161
+            check_gray[check_gray$value > thresher,]$B <- 8
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 251
+            check_gray[check_gray$value > thresher,]$G <- 186
+            check_gray[check_gray$value > thresher,]$B <- 31
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 246
+            check_gray[check_gray$value > thresher,]$G <- 213
+            check_gray[check_gray$value > thresher,]$B <- 67
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 241
+            check_gray[check_gray$value > thresher,]$G <- 237
+            check_gray[check_gray$value > thresher,]$B <- 113
+          }
+          
+          thresher <- thresher+setter
+          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 252
+            check_gray[check_gray$value > thresher,]$G <- 255
+            check_gray[check_gray$value > thresher,]$B <- 164
+          }
+          
+          if (nrow(check_gray[check_gray$value == max(check_gray$value),]) > 0){
+            check_gray[check_gray$value > thresher,]$R <- 255
+            check_gray[check_gray$value > thresher,]$G <- 255
+            check_gray[check_gray$value > thresher,]$B <- 255
+          }
+          
+          check_gray$R <- check_gray$R/255
+          check_gray$G <- check_gray$G/255
+          check_gray$B <- check_gray$B/255
+          
+          thick[thick$cc == 1,]$value <- check_gray$R
+          thick[thick$cc == 2,]$value <- check_gray$G
+          thick[thick$cc == 3,]$value <- check_gray$B
+          
+          newPlot <- suppressWarnings(as.cimg(thick))
+          newPlot <- cimg2magick(newPlot, rotate = T)
+          newPlot <- image_flop(newPlot)
+          image_write(newPlot, path = paste0("heatMap_", i), format = "png")
+        }
         
         # If class averaging is called via the 'fuse' parameter AND the image is a square...
         if (fuse == T & max(interim$x) == max(interim$y)){
@@ -274,7 +450,7 @@ lineAnalysis <- function(midX,
   pngList <- list.files(pattern = ".png")
   for (pngImage in pngList){
     # We'll ignore the overlay image because we may be using more than RBG
-    if (pngImage != "overlay.png"){
+    if (pngImage != "overlay.png" & !grepl("heatMap_", pngImage)){
       # Load the image as an object
       lineImage <- load.image(pngImage)
       #Convert it to grayscale dataframe
