@@ -4,6 +4,7 @@ explore <- function(fileName = cells,
                     cellCycle = T,
                     scheme = "schema.csv",
                     icellate = F,
+                    icellate_heatMap = T,
                     vSize = F,
                     random = T,
                     extraMetrics = F,
@@ -96,13 +97,15 @@ explore <- function(fileName = cells,
       if(icellate >= nrow(dFrame[dFrame["placeHolder"]==totalSet,])){
         icellate(targetCells = dFrame[dFrame["placeHolder"]==totalSet,], 
                  folderName = totalSet, 
-                 verifySize = vSize, 
+                 verifySize = vSize,
+                 heatIntensity = icellate_heatMap,
                  samplingNumber = nrow(dFrame[dFrame["placeHolder"]==totalSet,]), 
                  randomize = random)
       } else {
         icellate(targetCells = dFrame[dFrame["placeHolder"]==totalSet,], 
                  folderName = totalSet, 
                  verifySize = vSize, 
+                 heatIntensity = icellate_heatMap,
                  samplingNumber = icellate, 
                  randomize = random)
       }
