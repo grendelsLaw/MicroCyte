@@ -154,152 +154,18 @@ icellate <- function(targetCells,
           check_gray$G <- 0
           check_gray$B <- 0
           
-          setter <- (max(check_gray$value)-min(check_gray$value))/19
-          thresher <- 0
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 0
-            check_gray[check_gray$value > thresher,]$G <- 0
-            check_gray[check_gray$value > thresher,]$B <- 4
-          }
+          fake_plot <- ggplot(data = check_gray, aes(fill=value, x=x, y=y))+
+            geom_point()+
+            scale_fill_viridis_c(option = heatColor)
+          fake_plot <- ggplot_build(fake_plot)
+          fake_plot <- as.data.frame(fake_plot$data)
+          check_gray$hex <- fake_plot$fill
           
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 8
-            check_gray[check_gray$value > thresher,]$G <- 5
-            check_gray[check_gray$value > thresher,]$B <- 29
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 24
-            check_gray[check_gray$value > thresher,]$G <- 12
-            check_gray[check_gray$value > thresher,]$B <- 60
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 47
-            check_gray[check_gray$value > thresher,]$G <- 10
-            check_gray[check_gray$value > thresher,]$B <- 91
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 69
-            check_gray[check_gray$value > thresher,]$G <- 10
-            check_gray[check_gray$value > thresher,]$B <- 105
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 92
-            check_gray[check_gray$value > thresher,]$G <- 18
-            check_gray[check_gray$value > thresher,]$B <- 110
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 113
-            check_gray[check_gray$value > thresher,]$G <- 25
-            check_gray[check_gray$value > thresher,]$B <- 110
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 135
-            check_gray[check_gray$value > thresher,]$G <- 33
-            check_gray[check_gray$value > thresher,]$B <- 107
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 155
-            check_gray[check_gray$value > thresher,]$G <- 41
-            check_gray[check_gray$value > thresher,]$B <- 100
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 177
-            check_gray[check_gray$value > thresher,]$G <- 50
-            check_gray[check_gray$value > thresher,]$B <- 90
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 196
-            check_gray[check_gray$value > thresher,]$G <- 60
-            check_gray[check_gray$value > thresher,]$B <- 78
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 215
-            check_gray[check_gray$value > thresher,]$G <- 75
-            check_gray[check_gray$value > thresher,]$B <- 63
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 229
-            check_gray[check_gray$value > thresher,]$G <- 92
-            check_gray[check_gray$value > thresher,]$B <- 48
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 241
-            check_gray[check_gray$value > thresher,]$G <- 113
-            check_gray[check_gray$value > thresher,]$B <- 31
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 248
-            check_gray[check_gray$value > thresher,]$G <- 135
-            check_gray[check_gray$value > thresher,]$B <- 14
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 252
-            check_gray[check_gray$value > thresher,]$G <- 161
-            check_gray[check_gray$value > thresher,]$B <- 8
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 251
-            check_gray[check_gray$value > thresher,]$G <- 186
-            check_gray[check_gray$value > thresher,]$B <- 31
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 246
-            check_gray[check_gray$value > thresher,]$G <- 213
-            check_gray[check_gray$value > thresher,]$B <- 67
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 241
-            check_gray[check_gray$value > thresher,]$G <- 237
-            check_gray[check_gray$value > thresher,]$B <- 113
-          }
-          
-          thresher <- thresher+setter
-          if (nrow(check_gray[check_gray$value > thresher,]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 252
-            check_gray[check_gray$value > thresher,]$G <- 255
-            check_gray[check_gray$value > thresher,]$B <- 164
-          }
-          
-          if (nrow(check_gray[check_gray$value == max(check_gray$value),]) > 0){
-            check_gray[check_gray$value > thresher,]$R <- 255
-            check_gray[check_gray$value > thresher,]$G <- 255
-            check_gray[check_gray$value > thresher,]$B <- 255
+          for (viro in unique(check_gray$hex)){
+            rgb_code <- col2rgb(viro)
+            check_gray[check_gray$hex == viro,]$R <- rgb_code[1]
+            check_gray[check_gray$hex == viro,]$G <- rgb_code[2]
+            check_gray[check_gray$hex == viro,]$B <- rgb_code[3]
           }
           
           check_gray$R <- check_gray$R/255
