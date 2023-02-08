@@ -84,7 +84,7 @@ foci_compact <- function(fileName = "assigned.csv",
                          variable = "n",
                          variable_subset = "Positive",
                          variable_intensity = "Mean_NUC_n",
-                         overlap = 1){
+                         overlap = 2){
   cat(paste0("Running foci_compact from ", fileName, ".\n"))
   cells_new <- read.csv(paste0("data/",fileName))
   #First, we get the cells that are infected
