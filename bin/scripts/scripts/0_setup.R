@@ -17,7 +17,7 @@ recPackages <- c("ggplot2",
 print("Checking installed packages...")
 installedPackages <- installed.packages()
 for (i in recPackages){
-  if(!i %in% recPackages){
+  if(!i %in% installedPackages){
     print(paste0("Installing ", i, "..."))
     install.packages(i)
   }
