@@ -9,6 +9,7 @@ icellate <- function(targetCells,
                      verifySize = T,
                      fuse = F,
                      heatIntensity = F,
+                     heatColor = "inferno",
                      verifyImage = "overlay.png",
                      randomize = T,
                      samplingNumber = 5,
@@ -139,6 +140,7 @@ icellate <- function(targetCells,
         #Now to reset the corrdinates
         interim$x <- 1+interim$x-min(interim$x)
         interim$y <- 1+interim$y-min(interim$y)
+        
         
         # Now to convert the dataframe to an image object and save the image
         newPlot <- suppressWarnings(as.cimg(interim))
